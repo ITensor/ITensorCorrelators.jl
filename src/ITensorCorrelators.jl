@@ -12,7 +12,6 @@ function correlator(
   n = length(s)
 
   psidag = dag(sim(linkinds, psi))
-  psi′ = psidag'
 
   # Sort the sites
   sites = sort(sites)
@@ -20,7 +19,32 @@ function correlator(
   # Check that each elements of `sites` is sorted
   @assert all(issorted, sites)
 
-  return sites
+  # for i, j, k, l
+  # end
+
+  is = unique(getindex.(sites, 1))
+
+  @show is
+
+  # for i in is
+  i = is[1] # (i, j, k, l)
+  sites_i = sites[findall(x -> x[1] == i, sites)]
+  js = unique(getindex.(sites_i, 2))
+
+  @show sites_i
+  @show js
+
+  o1_i = op(ops[1], s[i])
+  L = apply(o1_i, psi[i]) * psidag[i]
+
+  # for j in js
+  j = js[1]
+
+  for x in (i + 1):(j - 1)
+    L = L * psi[x] * psidag[x]
+  end
+
+  return L
 end
 
 export correlator
