@@ -20,6 +20,7 @@ function correlator(
   # Check that each elements of `sites` is sorted
   @assert all(issorted, sites)
 
+  #"Test"
   return sites
 end
 
