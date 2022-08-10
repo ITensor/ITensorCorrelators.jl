@@ -3,8 +3,12 @@ uuid = "6b6dea30-58b3-414c-b7c7-5c6ea5923b3e"
 authors = ["Matthew Fishman <mfishman@flatironinstitute.org> and contributors"]
 version = "0.0.1"
 
+[deps]
+ITensors = "9136182c-28ba-11e9-034c-db9fb085ebd5"
+
 [compat]
 julia = "1.6"
+ITensors = "0.3.18"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
