@@ -13,4 +13,3 @@ julia> using Pkg
 julia> Pkg.develop(url="git@github.com:ITensor/ITensorCorrelators.jl.git")
 ```
 and then you can develop the package by editing the repository cloned to `~/.julia/dev/ITensorCorrelators`.
-trial
