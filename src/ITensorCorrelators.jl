@@ -8,7 +8,6 @@ function correlator(
   ops::NTuple{4,String},
   sites::Vector{NTuple{4,Int}},
 )
-  sites = [(1, 2, 3, 4), (1, 2, 4, 5), (1, 3, 4, 5), (1, 3, 7, 8)]
 
   sites = sort(sites) # Sort the sites
   @assert all(issorted, sites) # Check that each elements of `sites` is sorted
@@ -55,7 +54,7 @@ function correlator(
               op_psi_k = apply(op(ops[3], s[k]),psi[k])  #apply third operator "C" in position k
               L_k = L_k * op_psi_k * psi_dag[k]  #generate left tensor to store
 
-              for str in (j+1):(ls[1]-1) #contract between "A" and the first available "B"
+              for str in (k+1):(ls[1]-1) #contract between "A" and the first available "B"
                 L_k = L_k * psi[str] * psi_dag[str] 
               end
               for (d, l) in enumerate(ls) #choose fourth site ("D")
@@ -64,8 +63,8 @@ function correlator(
                   op_psi_l =  apply(op(ops[4],s[l]),psi[l]) #apply fourth operator "D" in position l
                   L_l = L_l * op_psi_l * psi_dag[l]  #generate left tensor to store
 
-                  R = ((l)<length(psi) ? delta(dag(ln[j+O]),ln[j+O]') : 1.) #create right system
-                  C[i, j, k, l] = pf*inner(dag(L_l), R) #get matrix element
+                  R = ((l)<length(psi) ? delta(dag(ln[l]),ln[l]') : 1.) #create right system
+                  C[i, j, k, l] = inner(dag(L_l), R) #get matrix element
 
                   if (d<length(ls))
                     for str in (l):(ls[d+1]-1) #contract between "A" and the first available "B"
@@ -74,19 +73,19 @@ function correlator(
                   end
               end
               if (c<length(ks))
-                for str in (l):(ls[c+1]-1) #contract between "A" and the first available "B"
+                for str in (k):(ks[c+1]-1) #contract between "A" and the first available "B"
                   L_j = L_j * psi[str] * psi_dag[str] 
                 end 
               end
           end
           if (b<length(js))
-            for str in (l):(ls[b+1]-1) #contract between "A" and the first available "B"
-              L_i = L_j * psi[str] * psi_dag[str] 
+            for str in (j):(js[b+1]-1) #contract between "A" and the first available "B"
+              L_i = L_i * psi[str] * psi_dag[str] 
             end 
           end
       end
   end
-  return L
+  return C
 end
 
 export correlator
