@@ -19,7 +19,6 @@ function correlator(
   psi_dag = prime(linkinds, dag(psi))
 
   is = unique(getindex.(sites, 1))
-
   for i in is #choose first site ("A")
       orthogonalize!(psi, i) #after orthogonalize weird things happen to the indices, have to do it before taking indices
       s = siteinds(psi) #this can be done before orth.
@@ -35,8 +34,9 @@ function correlator(
       for str in (i+1):(js[1]-1) #contract between "A" and the first available "B"
         L_i = L_i * psi[str] * psi_dag[str] 
       end
+
       for (b, j) in enumerate(js) #choose second site ("B")
-          sites_j = sites[findall(x -> x[2] == j, sites)] #checking the sites strings that has j in second position
+          sites_j = sites_i[findall(x -> x[2] == j, sites_i)] #checking the sites strings that has j in second position
           ks = unique(getindex.(sites_j, 3)) #getting the corresponding ks in position 3
 
           L_j = copy(L_i) #copy cached L_i
@@ -47,9 +47,9 @@ function correlator(
             L_j = L_j * psi[str] * psi_dag[str] 
           end
           for (c, k) in enumerate(ks) #choose third site ("C")
-              sites_k = sites[findall(x -> x[3] == k, sites)] #checking the sites strings that has k in third position
+              sites_k = sites_j[findall(x -> x[3] == k, sites_j)] #checking the sites strings that has k in third position
               ls = unique(getindex.(sites_k, 4)) #getting the corresponding ls in position 4
-  
+
               L_k = copy(L_j) #copy cached L_i
               op_psi_k = apply(op(ops[3], s[k]),psi[k])  #apply third operator "C" in position k
               L_k = L_k * op_psi_k * psi_dag[k]  #generate left tensor to store
