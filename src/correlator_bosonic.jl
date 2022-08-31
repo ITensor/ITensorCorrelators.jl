@@ -86,4 +86,4 @@ function correlator_bosonic(
     end
     return C
   end
-  
+

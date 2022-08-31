@@ -31,7 +31,7 @@ function correlator_fermionic(
   
         L_i = (i>1 ? delta(dag(ln[i-1])',ln[i-1]) : 1.) * op_psi_i * psi_dag[i]  #left system to conserve between contractions
         for str in (i+1):(js[1]-1) #contract between "A" and the first available "B"
-          L_i = L_i * psi[str] * psi_dag[str] 
+          L_i = L_i * apply(op("F", s[str]), psi[str]) * psi_dag[str]
         end
   
         for (b, j) in enumerate(js) #choose second site ("B")
@@ -87,3 +87,12 @@ function correlator_fermionic(
     return C
   end
   
+@macroexpand @generated function mysum(A::Array{T,N}) where {T,N}
+    quote
+        s = zero(T)
+        @nloops $N i A begin
+            s += @nref $N A i
+        end
+        s
+    end
+end

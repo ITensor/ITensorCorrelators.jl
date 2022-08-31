@@ -5,10 +5,14 @@ using ITensors
 include("correlator_bosonic.jl")
 include("correlator_bosonic_repeat.jl")
 include("correlator_fermionic.jl")
+include("correlator_bosonic_recursive.jl")
 
 export correlator_bosonic
 export correlator_bosonic_repeat
 export correlator_fermionic
+export correlator_recursive
+export correlator_recursive_compact
+
 
 end
 
