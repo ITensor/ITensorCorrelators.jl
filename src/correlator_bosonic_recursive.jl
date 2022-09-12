@@ -70,10 +70,11 @@ function inner_module(op_inds, sites_ind_prev, L_prev, counter, N, ops, s, ln, p
   end
 end
 
+
 function correlator_recursive_compact(
-  psi::MPS,
-  ops::Tuple{Vararg{String}},
-  sites::Vector{Tuple{Vararg{Int}}},
+  psi, #::MPS,
+  ops, #::Tuple{Vararg{String}},
+  sites, #::Vector{Tuple{Vararg{Int}}},
   )
 
   sites = sort(sites) # Sort the sites

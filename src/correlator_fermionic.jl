@@ -1,98 +1,67 @@
 using ITensors
 
-# correlator(("A", "B", "C", "D"), [(1, 2, 3, 4), (1, 2, 4, 5), ...])
-function correlator_fermionic(
-    psi::MPS,
-    ops::NTuple{4,String},
-    sites::Vector{NTuple{4,Int}},
-    )
-  
-    sites = sort(sites) # Sort the sites
-    @assert all(issorted, sites) # Check that each elements of `sites` is sorted
-  
-    C = Dict{NTuple{4,Int}, ComplexF64}()
-    #C = zeros(ComplexF64, length(psi), length(psi), length(psi), length(psi)) #should we output a list or a NxNxNxN matrix?
-  
-    #psi = copy(psi0)    
-    orthogonalize!(psi,1)
-    psi_dag = prime(linkinds, dag(psi))
-  
-    is = unique(getindex.(sites, 1))
-    for i in is #choose first site ("A")
-        orthogonalize!(psi, i) #after orthogonalize weird things happen to the indices, have to do it before taking indices
+
+function correlator_recursive_compact(
+  psi::MPS,
+  ops::Tuple{Vararg{String}},
+  sites::Vector{Tuple{Vararg{Int}}},
+  )
+
+  sites = sort(sites) # Sort the sites
+  N = length(sites[1])
+  @assert all(issorted, sites) # Check that each elements of `sites` is sorted
+
+  C = Dict{Tuple{Vararg{Int64}}, ComplexF64}()
+  #C = zeros(ComplexF64, length(psi), length(psi), length(psi), length(psi)) #should we output a list or a NxNxNxN matrix?
+
+  orthogonalize!(psi,1)
+  psi_dag = prime(linkinds, dag(psi))
+  op_inds = unique(getindex.(sites, 1))
+  s = siteinds(psi) #this can be done before orth.
+  ln = linkinds(psi)
+  psi_dag = prime(linkinds, dag(psi)) #opposite MPS to contract
+  L = ITensor(1.)
+  counter = 1
+  element = zeros(Int64, N)
+
+  inner_module_compact(op_inds, sites, L, counter, element, N, ops, s, ln, psi, psi_dag, C)
+
+  return C
+end
+
+function inner_module_compact(op_inds, sites_ind_prev, L_prev, counter, element, N, ops, s, ln, psi, psi_dag, C)
+    for (a, op_ind) in enumerate(op_inds)
+      element[counter] = op_ind
+      if counter == 1
+        orthogonalize!(psi, op_ind) #after orthogonalize weird things happen to the indices, have to do it before taking indices
         s = siteinds(psi) #this can be done before orth.
         ln = linkinds(psi)
         psi_dag = prime(linkinds, dag(psi)) #opposite MPS to contract
+        L_prev = (op_ind>1 ? delta(dag(ln[op_ind-1])',ln[op_ind-1]) : 1.) 
+      end
+
+      L = copy(L_prev) #copy cached L_i
+      op_psi =  apply(op(ops[counter], s[op_ind]),psi[op_ind])  #apply second operator "B" in position j
+      L = L * op_psi * psi_dag[op_ind]  #generate left tensor to store
   
-        sites_i = sites[findall(x -> x[1] == i, sites)] #checking the sites strings that start with i
-        js = unique(getindex.(sites_i, 2)) #getting the corresponding js in position 2
+      if counter == N
+        R = ((op_ind)<length(psi) ? delta(dag(ln[op_ind]),ln[op_ind]') : ITensor(1.)) #create right system
+        C[tuple(element...)] = inner(dag(L), R)
+      else
+        sites_ind = sites_ind_prev[findall(x -> x[counter] == op_ind, sites_ind_prev)] #checking the sites strings that has j in second position
+        op_inds_next = unique(getindex.(sites_ind, counter + 1)) #getting the corresponding ks in position 3  
   
-        op_psi_i = apply(op(ops[1], s[i]), psi[i]) #apply first operator "A" in position i
-  
-        L_i = (i>1 ? delta(dag(ln[i-1])',ln[i-1]) : 1.) * op_psi_i * psi_dag[i]  #left system to conserve between contractions
-        for str in (i+1):(js[1]-1) #contract between "A" and the first available "B"
-          L_i = L_i * apply(op("F", s[str]), psi[str]) * psi_dag[str]
+        for str in (op_ind+1):(op_inds_next[1]-1) #contract between "B" and the first available site "C"
+          L = L * psi[str] * psi_dag[str] 
         end
+        inner_module_compact(op_inds_next, sites_ind, L, counter + 1, element, N, ops, s, ln, psi, psi_dag, C)
+      end
   
-        for (b, j) in enumerate(js) #choose second site ("B")
-            sites_j = sites_i[findall(x -> x[2] == j, sites_i)] #checking the sites strings that has j in second position
-            ks = unique(getindex.(sites_j, 3)) #getting the corresponding ks in position 3
+      if (a<length(op_inds))
+        for str in (op_ind):(op_inds[a+1]-1) #contract between "A" and the first available "B"
+          L_prev = L_prev * psi[str] * psi_dag[str] 
+        end 
+      end
   
-            L_j = copy(L_i) #copy cached L_i
-            op_psi_j =  apply(op(ops[2], s[j]),psi[j])  #apply second operator "B" in position j
-            L_j = L_j * op_psi_j * psi_dag[j]  #generate left tensor to store
-  
-            for str in (j+1):(ks[1]-1) #contract between "B" and the first available site "C"
-              L_j = L_j * psi[str] * psi_dag[str] 
-            end
-            for (c, k) in enumerate(ks) #choose third site ("C")
-                sites_k = sites_j[findall(x -> x[3] == k, sites_j)] #checking the sites strings that has k in third position
-                ls = unique(getindex.(sites_k, 4)) #getting the corresponding ls in position 4
-  
-                L_k = copy(L_j) #copy cached L_i
-                op_psi_k = apply(op(ops[3], s[k]),psi[k])  #apply third operator "C" in position k
-                L_k = L_k * op_psi_k * psi_dag[k]  #generate left tensor to store
-  
-                for str in (k+1):(ls[1]-1) #contract between "A" and the first available "B"
-                  L_k = L_k * psi[str] * psi_dag[str] 
-                end
-                for (d, l) in enumerate(ls) #choose fourth site ("D")
-  
-                    L_l = copy(L_k) #copy cached L_k  
-                    op_psi_l =  apply(op(ops[4],s[l]),psi[l]) #apply fourth operator "D" in position l
-                    L_l = L_l * op_psi_l * psi_dag[l]  #generate left tensor to store
-  
-                    R = ((l)<length(psi) ? delta(dag(ln[l]),ln[l]') : 1.) #create right system
-                    C[(i,j,k,l)] = inner(dag(L_l), R)
-  
-                    if (d<length(ls))
-                      for str in (l):(ls[d+1]-1) #contract between "A" and the first available "B"
-                        L_k = L_k * psi[str] * psi_dag[str] 
-                      end 
-                    end
-                end
-                if (c<length(ks))
-                  for str in (k):(ks[c+1]-1) #contract between "A" and the first available "B"
-                    L_j = L_j * psi[str] * psi_dag[str] 
-                  end 
-                end
-            end
-            if (b<length(js))
-              for str in (j):(js[b+1]-1) #contract between "A" and the first available "B"
-                L_i = L_i * psi[str] * psi_dag[str] 
-              end 
-            end
-        end
     end
-    return C
   end
-  
-@macroexpand @generated function mysum(A::Array{T,N}) where {T,N}
-    quote
-        s = zero(T)
-        @nloops $N i A begin
-            s += @nref $N A i
-        end
-        s
-    end
-end
