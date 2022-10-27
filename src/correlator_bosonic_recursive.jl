@@ -1,6 +1,7 @@
 using ITensors
 
 # correlator(("A", "B", "C", "D"), [(1, 2, 3, 4), (1, 2, 4, 5), ...])
+#=
 function correlator_recursive(
     psi::MPS,
     ops::Tuple{Vararg{String}},
@@ -69,24 +70,24 @@ function add_operator(op_inds, sites_ind_prev, L_prev, counter, N, ops, s, ln, p
 
   end
 end
-
+=#
 
 function correlator_recursive_compact(
   psi, #::MPS,
   ops, #::Tuple{Vararg{String}},
   sites; #::Vector{Tuple{Vararg{Int}}},
-  #indices = nothing
+  indices = nothing
   )
 
-  if indices === nothing
+  if indices === nothing #assumes all the sites are already properly ordered
     indices = collect(1:length(ops))
   end
 
-  sites = sort(sites) # Sort the sites
+  sites = sort(sites) # Sort the sites along y
   N = length(sites[1])
   @assert all(issorted, sites) # Check that each elements of `sites` is sorted
 
-  C = Dict{Tuple{Vararg{Int64}}, ComplexF64}()
+  C = Dict{Tuple{Vararg{Int64}}, ComplexF64}() #initialize dictionary to store data
   #C = zeros(ComplexF64, length(psi), length(psi), length(psi), length(psi)) #should we output a list or a NxNxNxN matrix?
 
   orthogonalize!(psi,1)
@@ -121,7 +122,7 @@ function add_operator(op_inds, sites_ind_prev, L_prev, counter, element, N, ops,
   
       if counter == N
         R = ((op_ind)<length(psi) ? delta(dag(ln[op_ind]),ln[op_ind]') : ITensor(1.)) #create right system
-        C[tuple([element[k] for k in indices]...)] = inner(dag(L), R)
+        C[tuple([element[k] for k in [findall(x->x==j,indices)[1] for j in sort(indices)]]...)] = inner(dag(L), R)
       else
         sites_ind = sites_ind_prev[findall(x -> x[counter] == op_ind, sites_ind_prev)] #checking the sites strings that has j in second position
         op_inds_next = unique(getindex.(sites_ind, counter + 1)) #getting the corresponding ks in position 3  
@@ -131,7 +132,6 @@ function add_operator(op_inds, sites_ind_prev, L_prev, counter, element, N, ops,
         end
         add_operator(op_inds_next, sites_ind, L, counter + 1, element, N, ops, s, ln, psi, psi_dag, C, indices)
       end
-  
       if (a<length(op_inds))
         for str in (op_ind):(op_inds[a+1]-1) #contract between "A" and the first available "B"
           L_prev = L_prev * psi[str] * psi_dag[str] 

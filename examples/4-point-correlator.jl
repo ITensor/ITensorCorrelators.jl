@@ -3,6 +3,11 @@ using ITensors
 using ITensorCorrelators
 using Random
 
+using PyCall; ENV["KMP_DUPLICATE_LIB_OK"] = true
+import PyPlot
+const plt = PyPlot; 
+plt.matplotlib.use("TkAgg"); ENV["MPLBACKEND"] = "TkAgg"; plt.pygui(true); plt.ion()
+
 Random.seed!(1234)
 
 function perm_ind(A, n, f)
@@ -20,61 +25,48 @@ function perm_ind(A, n, f)
     return f
 end
 
+sizes = [100]
+opers = [10,20,30,40]
+t_MPO = zeros(length(opers))
+t_opt = zeros(length(opers))
 
-#=
-cor_ops = ("X", "Y", "Z", "S+")
-op_sites = [(5,6,7,4), (3,4,6,8), (7,6,2,4), (6,3,5,7), (5,6,7,8)]
-indices = similar(op_sites); op_sorted=similar(op_sites)
-for (i,op_site) in enumerate(op_sites)
-    op_sorted[i] = tuple(sort([op_site...])...)
-    indices[i] = tuple([findall(x->x==j,op_site)[1] for j in op_sorted[i]]...)
-end
-
-op_sites_dist = similar(unique(indices))
-for i in 1:length(unique(indices))
-    op_sites = @show [op_sorted[j] for j in findall(x->x==unique(indices)[i],indices)]
-    cor_ops_ord = tuple([cor_ops[j] for j in unique(indices)[i]])
-end
-
-println(op_sorted)
-println(indices)
-f = perm_ind([op_sites...], length(op_sites)+1, 0)
-println(f, op_sorted)
-=#
-
-
-
-n = 50
-s = siteinds("S=1/2", n)
-psi = randomMPS(s, j -> isodd(j) ? "↑" : "↓"; linkdims=300)
-cor_ops = ("X", "Y", "Z", "S+", "S-")
-#op_sites = [(1, 2, 3, 4), (1, 2, 4, 5), (1, 3, 4, 5), (2, 3, 4, 5)]
-op_sites = Tuple{Vararg{Int}}[]
-#op_sites = NTuple{4,Int}[]
-for s in 1:15
-    aa = (rand(1:(n-1)), rand(1:(n-1)), rand(1:(n-1)), rand(1:(n-1)), rand(1:(n-1)))
-    if unique(aa) == [aa...]
-        push!(op_sites, aa)
+for (i, oper) in enumerate(opers)
+    n = 100
+    s = siteinds("S=1/2", n)
+    psi = randomMPS(s, j -> isodd(j) ? "↑" : "↓"; linkdims=300)
+    cor_ops = ("Z", "Z", "Z", "Z", "Z")
+    #op_sites = [(1, 2, 3, 4), (1, 2, 4, 5), (1, 3, 4, 5), (2, 3, 4, 5)]
+    op_sites = Tuple{Vararg{Int}}[]
+    #op_sites = NTuple{4,Int}[]
+    for s in 1:oper
+        aa = (rand(1:(n-1)), rand(1:(n-1)), rand(1:(n-1)), rand(1:(n-1)), rand(1:(n-1)))
+        if unique(aa) == [aa...]
+            push!(op_sites, sort(aa))
+        end
     end
-end
-#op_sites = [(1, 1, 1, 1), (1, 1, 2, 2), (1, 2, 3, 3), (3, 3, 2, 1), (1, 2, 3, 4)]
-#op_sites = [(2,5,6,6), (2,5,6,7)]
-op_sites = @show sort(op_sites)
+    #op_sites = [(1, 1, 1, 1), (1, 1, 2, 2), (1, 2, 3, 3), (3, 3, 2, 1), (1, 2, 3, 4)]
+    #op_sites = [(2,5,6,6), (2,5,6,7)]
+    #op_sites = @show sort(op_sites)
 
-
-function correlator_MPO(psi, cor_ops, op_sites)
-    sites = siteinds(psi)  
-    C = Dict{NTuple{5,Int}, ComplexF64}()
-    for l in op_sites #multithreading on 16 threads
-        os = OpSum()
-        os += cor_ops[1], l[1], cor_ops[2], l[2], cor_ops[3], l[3], cor_ops[4], l[4], cor_ops[5], l[5]
-        corr = MPO(os, sites)
-        C[l...] = inner(psi', corr, psi) #SC correlation function   
+    function correlator_MPO(psi, cor_ops, op_sites)
+        sites = siteinds(psi)  
+        C = Dict{NTuple{5,Int}, ComplexF64}()
+        for l in op_sites 
+            os = OpSum()
+            os += cor_ops[1], l[1], cor_ops[2], l[2], cor_ops[3], l[3], cor_ops[4], l[4], cor_ops[5], l[5]
+            corr = MPO(os, sites)
+            C[l...] = inner(psi', corr, psi) #SC correlation function   
+        end
+        return C 
     end
-    return C 
+
+    t_MPO[i] = @elapsed correlator_MPO(psi, cor_ops, op_sites)
+    t_opt[i] = @elapsed correlator(psi, cor_ops, op_sites) #for the moment it only works with all four op on different sites
 end
 
-#res = @time @show correlator_MPO(psi, cor_ops, op_sites)
-res_1 = @time @show correlator(psi, cor_ops, op_sites) #for the moment it only works with all four op on different sites
+plt.figure(1)
+plt.plot(opers, t_MPO, ".-", label = "MPO")
+plt.plot(opers, t_opt, ".-", label = "Opt")
+plt.legend()
 
-#round.(values(res) .- values(res_1), digits = 8)
+    #round.(values(res) .- values(res_1), digits = 8)
