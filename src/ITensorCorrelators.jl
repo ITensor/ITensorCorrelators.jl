@@ -16,11 +16,13 @@ function correlator(psi, cor_ops, op_sites)
 
     C = Dict{Tuple{Vararg{Int64}}, ComplexF64}()
     for i in 1:length(unique(indices))
-        op_sites_ord = @show [op_sorted[j] for j in findall(x->x==unique(indices)[i],indices)]
-        prinln(op_sites_ord)
-        cor_ops_ord = tuple([cor_ops[j] for j in unique(indices)[i]])
+        ind_sites = unique(indices)[i]
+        println(ind_sites)
+        op_sites_ord = [op_sorted[j] for j in findall(x->x==ind_sites,indices)]
+        println(op_sites_ord)
+        cor_ops_ord = tuple([cor_ops[j] for j in ind_sites]...)
         println(cor_ops_ord)
-        push!(C,correlator_recursive_compact(psi, cor_ops_ord, op_sites_ord))
+        push!(C, correlator_recursive_compact(psi, cor_ops_ord, op_sites_ord; indices = ind_sites)...)
     end 
     return C
 end

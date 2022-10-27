@@ -1,7 +1,6 @@
 using Revise
 using ITensors
-#include("../src/ITensorCorrelators.jl")
-using .ITensorCorrelators
+using ITensorCorrelators
 using Random
 
 Random.seed!(1234)
@@ -20,6 +19,7 @@ function perm_ind(A, n, f)
     end
     return f
 end
+
 
 #=
 cor_ops = ("X", "Y", "Z", "S+")
@@ -44,22 +44,23 @@ println(f, op_sorted)
 
 
 
-n = 10
+n = 50
 s = siteinds("S=1/2", n)
 psi = randomMPS(s, j -> isodd(j) ? "↑" : "↓"; linkdims=300)
-cor_ops = ("Z", "Z", "Z", "Z", "Z")
+cor_ops = ("X", "Y", "Z", "S+", "S-")
 #op_sites = [(1, 2, 3, 4), (1, 2, 4, 5), (1, 3, 4, 5), (2, 3, 4, 5)]
 op_sites = Tuple{Vararg{Int}}[]
 #op_sites = NTuple{4,Int}[]
-for s in 1:100
+for s in 1:15
     aa = (rand(1:(n-1)), rand(1:(n-1)), rand(1:(n-1)), rand(1:(n-1)), rand(1:(n-1)))
     if unique(aa) == [aa...]
-        push!(op_sites, sort(aa))
+        push!(op_sites, aa)
     end
 end
 #op_sites = [(1, 1, 1, 1), (1, 1, 2, 2), (1, 2, 3, 3), (3, 3, 2, 1), (1, 2, 3, 4)]
 #op_sites = [(2,5,6,6), (2,5,6,7)]
-op_sites = sort(op_sites)
+op_sites = @show sort(op_sites)
+
 
 function correlator_MPO(psi, cor_ops, op_sites)
     sites = siteinds(psi)  
@@ -73,7 +74,7 @@ function correlator_MPO(psi, cor_ops, op_sites)
     return C 
 end
 
-res = @time correlator_MPO(psi, cor_ops, op_sites)
-res_1 = @time correlator(psi, cor_ops, op_sites) #for the moment it only works with all four op on different sites
+#res = @time @show correlator_MPO(psi, cor_ops, op_sites)
+res_1 = @time @show correlator(psi, cor_ops, op_sites) #for the moment it only works with all four op on different sites
 
-round.(values(res) .-values(res_1), digits = 8)
+#round.(values(res) .- values(res_1), digits = 8)

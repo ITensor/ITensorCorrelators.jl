@@ -36,13 +36,13 @@ function correlator_recursive(
           L_i = L_i * psi[str] * psi_dag[str] 
         end
 
-        inner_module(js, sites_i, L_i, counter + 1, N, ops, s, ln, psi, psi_dag)
+        add_operator(js, sites_i, L_i, counter + 1, N, ops, s, ln, psi, psi_dag)
         println("END")
       end
     return 0
   end
 
-function inner_module(op_inds, sites_ind_prev, L_prev, counter, N, ops, s, ln, psi, psi_dag)
+function add_operator(op_inds, sites_ind_prev, L_prev, counter, N, ops, s, ln, psi, psi_dag)
   for (a, op_ind) in enumerate(op_inds)
     L = copy(L_prev) #copy cached L_i
     op_psi =  apply(op(ops[counter], s[op_ind]),psi[op_ind])  #apply second operator "B" in position j
@@ -74,8 +74,13 @@ end
 function correlator_recursive_compact(
   psi, #::MPS,
   ops, #::Tuple{Vararg{String}},
-  sites, #::Vector{Tuple{Vararg{Int}}},
+  sites; #::Vector{Tuple{Vararg{Int}}},
+  #indices = nothing
   )
+
+  if indices === nothing
+    indices = collect(1:length(ops))
+  end
 
   sites = sort(sites) # Sort the sites
   N = length(sites[1])
@@ -94,12 +99,12 @@ function correlator_recursive_compact(
   counter = 1
   element = zeros(Int64, N)
 
-  inner_module_compact(op_inds, sites, L, counter, element, N, ops, s, ln, psi, psi_dag, C)
+  add_operator(op_inds, sites, L, counter, element, N, ops, s, ln, psi, psi_dag, C, indices)
 
   return C
 end
 
-function inner_module_compact(op_inds, sites_ind_prev, L_prev, counter, element, N, ops, s, ln, psi, psi_dag, C)
+function add_operator(op_inds, sites_ind_prev, L_prev, counter, element, N, ops, s, ln, psi, psi_dag, C, indices)
     for (a, op_ind) in enumerate(op_inds)
       element[counter] = op_ind
       if counter == 1
@@ -116,7 +121,7 @@ function inner_module_compact(op_inds, sites_ind_prev, L_prev, counter, element,
   
       if counter == N
         R = ((op_ind)<length(psi) ? delta(dag(ln[op_ind]),ln[op_ind]') : ITensor(1.)) #create right system
-        C[tuple(element...)] = inner(dag(L), R)
+        C[tuple([element[k] for k in indices]...)] = inner(dag(L), R)
       else
         sites_ind = sites_ind_prev[findall(x -> x[counter] == op_ind, sites_ind_prev)] #checking the sites strings that has j in second position
         op_inds_next = unique(getindex.(sites_ind, counter + 1)) #getting the corresponding ks in position 3  
@@ -124,7 +129,7 @@ function inner_module_compact(op_inds, sites_ind_prev, L_prev, counter, element,
         for str in (op_ind+1):(op_inds_next[1]-1) #contract between "B" and the first available site "C"
           L = L * psi[str] * psi_dag[str] 
         end
-        inner_module_compact(op_inds_next, sites_ind, L, counter + 1, element, N, ops, s, ln, psi, psi_dag, C)
+        add_operator(op_inds_next, sites_ind, L, counter + 1, element, N, ops, s, ln, psi, psi_dag, C, indices)
       end
   
       if (a<length(op_inds))
@@ -132,7 +137,5 @@ function inner_module_compact(op_inds, sites_ind_prev, L_prev, counter, element,
           L_prev = L_prev * psi[str] * psi_dag[str] 
         end 
       end
-  
     end
   end
-  
