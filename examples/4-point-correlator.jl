@@ -27,26 +27,6 @@ end
 
 #ITensors.enable_auto_fermion()
 
-Nx = 5; Ny = 4
-N = Nx * Ny
-s = siteinds("Electron", N; conserve_qns = true)
-psi = randomMPS(s, j -> isodd(j) ? "Up" : "Dn")
-#psi = productMPS(s, j -> isodd(j) ? "1" : "0")
-
-function fh(n)
-    ampo = OpSum()
-    for i in 1:(n-1)
-        ampo += -8, "Cdagup", i, "Cup", i+1
-        ampo += -8, "Cdagup", i+1, "Cup", i
-        #ampo += -1, "Cdagup", i, "Cdn", i+1
-        #ampo += -1, "Cdagdn", i+1, "Cup", i
-        ampo += -3, "Cdagdn", i, "Cdn", i+1
-        ampo += -3, "Cdagdn", i+1, "Cdn", i
-
-        ampo += 6, "Nup", i, "Ndn", i+1
-    end
-    return ampo
-end
 
 function square_lattice_nn(Nx::Int, Ny::Int; kwargs...)::Lattice
     yperiodic = get(kwargs, :yperiodic, false)
@@ -121,26 +101,45 @@ function fh2(;t = 1, tp = 0.2, U = 10, Nx = 4, Ny = 2, α = 0.0)
     return ampo
 end
 
+
+function fh(n)
+    ampo = OpSum()
+    for i in 1:(n-1)
+        ampo += -3, "Cdagup", i, "Cup", i+1
+        ampo += -3, "Cdagup", i+1, "Cup", i
+        #ampo += -1, "Cdagup", i, "Cdn", i+1
+        #ampo += -1, "Cdagdn", i+1, "Cup", i
+        ampo += -3, "Cdagdn", i, "Cdn", i+1
+        ampo += -3, "Cdagdn", i+1, "Cdn", i
+
+        ampo += 6, "Nup", i, "Ndn", i+1
+    end
+    return ampo
+end
+
+Nx = 5; Ny = 20
+N = Nx * Ny
+s = siteinds("Electron", N; conserve_qns = true)
+psi = randomMPS(s, j -> isodd(j) ? "Up" : "Dn")
+#psi = productMPS(s, j -> isodd(j) ? "1" : "0")
+
+
 sweeps = Sweeps(10)
 setmaxdim!(sweeps, 250)
 
-ss = fh2(; Nx = Nx, Ny = Ny)
+#ss = fh2(; Nx = Nx, Ny = Ny)
+ss = fh(N)
 H = MPO(ss, s)
 E, psi = dmrg(H, psi, sweeps)
 
-cor_ops = ("Cdagup", "Cdn", "Cup", "Cdagdn")
+cor_ops = ("Cdagup", "Cdagdn", "Cdn", "Cup")
 
 op_sites = Tuple{Vararg{Int}}[]
-for a in 1:N
-    for b in (a+1):N
-        for c in (b+1):N
-            for d in (c+1):N
-                push!(op_sites, (a, b, c, d))
-            end
-        end
+for a in 1:(N-3)
+    for b in (a+2):(N-1)
+        push!(op_sites, (a, a+1, b, b+1))
     end
 end
-
 
 #op_sites = NTuple{4,Int}[]
 
@@ -154,8 +153,6 @@ for s in 1:30
     end
 end 
 =#
-
-@show op_sites
 
 function correlator_MPO(psi, cor_ops, op_sites)
     sites = siteinds(psi)
@@ -171,12 +168,17 @@ end
 
 t_MPO = @time correlator_MPO(psi, cor_ops, op_sites)
 t_opt = @time correlator(psi, cor_ops, op_sites) #for the moment it only works with all four op on different sites
+display(t_opt)
 t = round.(values(t_MPO) .- values(t_opt), digits = 8)
-
-
+display(t)
 #==
 plt.figure(1)
 plt.plot(opers, t_MPO, ".-", label = "MPO")
 plt.plot(opers, t_opt, ".-", label = "Opt")
 plt.legend()
 ==#
+
+#10  0.02    0.13   28
+#20  0.15    2.16 153
+#50 1.16  47 1128 
+#100  4.61  418  4753
