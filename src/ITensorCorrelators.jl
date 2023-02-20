@@ -27,7 +27,7 @@ function correlator(psi,
     cor_ops, #operator string to be computed, i.e. ("X","Y","Z")
     op_sites #list of tuples witht the sites where cor_ops are applied (does NOT have to be ordered)
     )
-    cor_ops = map(a -> fermi_to_bose(a), cor_ops)
+    #cor_ops = map(a -> fermi_to_bose(a), cor_ops)
     indices = similar(op_sites); op_sorted = similar(op_sites)
 
     for (i,op_site) in enumerate(op_sites)

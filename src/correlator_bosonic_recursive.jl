@@ -189,16 +189,20 @@ function add_operator_fermi(op_inds, sites_ind_prev, L_prev, counter, element, N
       L_prev = (op_ind>1 ? delta(dag(ln[op_ind-1])',ln[op_ind-1]) : 1.) #initialize left environment
     end
 
-    L = copy(L_prev) #copy cached environment after applying previous operator (this can be simplified)
-    op_psi = apply(op(ops[counter], s[op_ind]),psi[op_ind])  #apply operator in the spot #counter
+    L = L_prev#copy(L_prev) #copy cached environment after applying previous operator (this can be simplified)
+    op_psi = psi[op_ind]
+
     if jw % 2 != 0 
       op_psi = apply(op("F", s[op_ind]),op_psi) #apply jordan wigner string if needed
     end
-    if ops[counter] == "Adagup" || ops[counter] == "Adag" || ops[counter] == "Aup" || ops[counter] == "A"
-      jw_next = jw + 1 #track if a fermionic operator was applied
-    elseif ops[counter] == "Adagdn" || ops[counter] == "Adn"
+    op_psi = apply(op(ops[counter], s[op_ind]), op_psi)  #apply operator in the spot #counter
+
+    if ops[counter] == "Cdagup" || ops[counter] == "Cdag" || ops[counter] == "Cup" || ops[counter] == "C"
+      jw_next = jw + 1; op_psi = apply(op("F", s[op_ind]),op_psi) #track if a fermionic operator was applied
+    elseif ops[counter] == "Cdagdn" || ops[counter] == "Cdn"
       jw_next = jw + 1 ; op_psi = apply(op("F", s[op_ind]),op_psi) #for spin down operator we need a j-w term on-sitw
     end
+
     L = L * op_psi * psi_dag[op_ind]  #generate left environment to store
 
     if counter == N
