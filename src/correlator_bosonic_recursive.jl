@@ -103,7 +103,6 @@ function correlator_recursive_compact(
   element = zeros(Int64, N)
 
   add_operator_fermi(op_inds, sites, L, counter, element, N, ops, s, ln, psi, psi_dag, C, indices, jw)
-
   return C
 end
 
@@ -208,6 +207,8 @@ function add_operator_fermi(op_inds, sites_ind_prev, L_prev, counter, element, N
     if counter == N
       R = ((op_ind)<length(psi) ? delta(dag(ln[op_ind]),ln[op_ind]') : ITensor(1.)) #create right system
       C[tuple([element[k] for k in [findall(x->x==j,indices)[1] for j in sort(indices)]]...)] = inner(dag(L), R)
+      #push!(C, tuple([element[k] for k in [findall(x->x==j,indices)[1] for j in sort(indices)]]...) => inner(dag(L), R))
+      L=0
     else
       sites_ind = sites_ind_prev[findall(x -> x[counter] == op_ind, sites_ind_prev)] #checking if there are more terms with the element #counter in operators to compute
       op_inds_next = unique(getindex.(sites_ind, counter + 1)) #getting the sites counter+1 in the string 

@@ -35,14 +35,14 @@ function correlator(psi,
         indices[i] = tuple([findall(x->x==j,op_site)[1] for j in op_sorted[i]]...) #store the order of the unordered sites strings
     end
 
-    C = Dict{Tuple{Vararg{Int64}}, ComplexF64}()
-    for i in 1:length(unique(indices)) #compute correlator separatedly for every possible order of sites
-        ind_sites = unique(indices)[i]
-        op_sites_ord = [op_sorted[j] for j in findall(x->x==ind_sites,indices)]
-        cor_ops_ord = tuple([cor_ops[j] for j in ind_sites]...)
-        display(cor_ops)
-        push!(C, correlator_recursive_compact(psi, cor_ops_ord, op_sites_ord; indices = ind_sites)...)
-    end 
+    #C = Dict{Tuple{Vararg{Int64}}, ComplexF64}()
+    #for i in 1:length(unique(indices)) #compute correlator separatedly for every possible order of sites
+    i = 1
+    ind_sites = unique(indices)[i]
+    op_sites_ord = [op_sorted[j] for j in findall(x->x==ind_sites,indices)]
+    cor_ops_ord = tuple([cor_ops[j] for j in ind_sites]...)
+    C = correlator_recursive_compact(psi, cor_ops_ord, op_sites_ord; indices = ind_sites)
+    #end 
     return C
 end
 

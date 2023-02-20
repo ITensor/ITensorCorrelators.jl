@@ -27,7 +27,7 @@ end
 
 #ITensors.enable_auto_fermion()
 
-Nx = 4; Ny = 3
+Nx = 5; Ny = 4
 N = Nx * Ny
 s = siteinds("Electron", N; conserve_qns = true)
 psi = randomMPS(s, j -> isodd(j) ? "Up" : "Dn")
@@ -122,7 +122,7 @@ function fh2(;t = 1, tp = 0.2, U = 10, Nx = 4, Ny = 2, α = 0.0)
 end
 
 sweeps = Sweeps(10)
-setmaxdim!(sweeps, 200)
+setmaxdim!(sweeps, 250)
 
 ss = fh2(; Nx = Nx, Ny = Ny)
 H = MPO(ss, s)
@@ -170,9 +170,7 @@ function correlator_MPO(psi, cor_ops, op_sites)
 end
 
 t_MPO = @time correlator_MPO(psi, cor_ops, op_sites)
-t_opt = @profview correlator(psi, cor_ops, op_sites) #for the moment it only works with all four op on different sites
-display(t_MPO)
-display(t_opt)
+t_opt = @time correlator(psi, cor_ops, op_sites) #for the moment it only works with all four op on different sites
 t = round.(values(t_MPO) .- values(t_opt), digits = 8)
 
 
