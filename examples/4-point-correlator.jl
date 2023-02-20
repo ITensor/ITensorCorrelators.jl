@@ -8,7 +8,7 @@ import PyPlot
 const plt = PyPlot; 
 plt.matplotlib.use("TkAgg"); ENV["MPLBACKEND"] = "TkAgg"; plt.pygui(true); plt.ion()
 
-Random.seed!(1234)
+Random.seed!(2345)
 
 function perm_ind(A, n, f)
     if n>1
@@ -26,47 +26,75 @@ function perm_ind(A, n, f)
 end
 
 sizes = [100]
-opers = [10,20,30,40]
+opers = [20,30]
 t_MPO = zeros(length(opers))
 t_opt = zeros(length(opers))
 
-for (i, oper) in enumerate(opers)
-    n = 100
-    s = siteinds("S=1/2", n)
-    psi = randomMPS(s, j -> isodd(j) ? "↑" : "↓"; linkdims=300)
-    cor_ops = ("Z", "Z", "Z", "Z", "Z")
-    #op_sites = [(1, 2, 3, 4), (1, 2, 4, 5), (1, 3, 4, 5), (2, 3, 4, 5)]
-    op_sites = Tuple{Vararg{Int}}[]
-    #op_sites = NTuple{4,Int}[]
-    for s in 1:oper
-        aa = (rand(1:(n-1)), rand(1:(n-1)), rand(1:(n-1)), rand(1:(n-1)), rand(1:(n-1)))
-        if unique(aa) == [aa...]
-            push!(op_sites, sort(aa))
-        end
-    end
-    #op_sites = [(1, 1, 1, 1), (1, 1, 2, 2), (1, 2, 3, 3), (3, 3, 2, 1), (1, 2, 3, 4)]
-    #op_sites = [(2,5,6,6), (2,5,6,7)]
-    #op_sites = @show sort(op_sites)
+#ITensors.enable_auto_fermion()
 
-    function correlator_MPO(psi, cor_ops, op_sites)
-        sites = siteinds(psi)  
-        C = Dict{NTuple{5,Int}, ComplexF64}()
-        for l in op_sites 
-            os = OpSum()
-            os += cor_ops[1], l[1], cor_ops[2], l[2], cor_ops[3], l[3], cor_ops[4], l[4], cor_ops[5], l[5]
-            corr = MPO(os, sites)
-            C[l...] = inner(psi', corr, psi) #SC correlation function   
-        end
-        return C 
-    end
 
-    t_MPO[i] = @elapsed correlator_MPO(psi, cor_ops, op_sites)
-    t_opt[i] = @elapsed correlator(psi, cor_ops, op_sites) #for the moment it only works with all four op on different sites
+
+n = 10
+s = siteinds("Electron", n; conserve_qns = true)
+psi = randomMPS(s, j -> isodd(j) ? "Up" : "Dn", linkdims = 100)
+#psi = productMPS(s, j -> isodd(j) ? "1" : "0")
+
+function fh(n)
+    ampo = OpSum()
+    for i in 1:(n-1)
+        ampo += 1, "Cdagup", i, "Cup", i+1
+        ampo += 1, "Cdagup", i+1, "Cup", i
+        ampo += 1, "Cdagdn", i, "Cdn", i+1
+        ampo += 1, "Cdagdn", i+1, "Cdn", i
+
+        ampo += 3, "Nup", i, "Ndn", i
+    end
+    return ampo
 end
 
+sweeps = Sweeps(10)
+setmaxdim!(sweeps, 30)
+
+os = fh(n)
+H = MPO(os, s)
+E, psi = dmrg(H, psi, sweeps)
+
+cor_ops = ("Cdagup", "Cup")
+op_sites = [(1, 2)]
+#op_sites = Tuple{Vararg{Int}}[]
+#op_sites = NTuple{4,Int}[]
+#=
+for s in 1:20
+    aa = (rand(1:(n-1)), rand(1:(n-1)))
+    if unique(aa) == [aa...]
+        push!(op_sites, sort(aa))
+    end
+end
+=#
+@show op_sites
+
+function correlator_MPO(psi, cor_ops, op_sites)
+    sites = siteinds(psi)
+    C = Dict{NTuple{2,Int}, ComplexF64}()
+    for l in op_sites 
+        os = OpSum()
+        os += cor_ops[1], l[1], cor_ops[2], l[2]#, cor_ops[3], l[3], cor_ops[4], l[4]
+        corr = MPO(os, sites)
+        C[l...] = inner(psi', corr, psi) #SC correlation function   
+    end
+    return C 
+end
+
+t_MPO = @time correlator_MPO(psi, cor_ops, op_sites)
+t_opt = @time correlator(psi, cor_ops, op_sites) #for the moment it only works with all four op on different sites
+display(t_MPO)
+display(t_opt)
+t = round.(values(t_MPO) .- values(t_opt), digits = 8)
+
+
+#==
 plt.figure(1)
 plt.plot(opers, t_MPO, ".-", label = "MPO")
 plt.plot(opers, t_opt, ".-", label = "Opt")
 plt.legend()
-
-    #round.(values(res) .- values(res_1), digits = 8)
+==#
