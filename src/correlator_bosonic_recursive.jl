@@ -100,7 +100,6 @@ function correlator_recursive_compact(
   L = ITensor(1.)
   counter = 1
   jw = 0 #keeps track of the number of fermionic operator to add a jordan-wigner term
-  jw_next = 0
   element = zeros(Int64, N)
 
   add_operator_fermi(op_inds, sites, L, counter, element, N, ops, s, ln, psi, psi_dag, C, indices, jw)
@@ -197,6 +196,7 @@ function add_operator_fermi(op_inds, sites_ind_prev, L_prev, counter, element, N
     end
     op_psi = apply(op(ops[counter], s[op_ind]), op_psi)  #apply operator in the spot #counter
 
+    jw_next = 0
     if ops[counter] == "Cdagup" || ops[counter] == "Cdag" || ops[counter] == "Cup" || ops[counter] == "C"
       jw_next = jw + 1; op_psi = apply(op("F", s[op_ind]),op_psi) #track if a fermionic operator was applied
     elseif ops[counter] == "Cdagdn" || ops[counter] == "Cdn"
