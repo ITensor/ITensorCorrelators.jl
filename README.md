@@ -1,15 +1,29 @@
 # ITensorCorrelators
 
-[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://mtfishman.github.io/ITensorCorrelators.jl/stable/)
-[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://mtfishman.github.io/ITensorCorrelators.jl/dev/)
-[![Build Status](https://github.com/mtfishman/ITensorCorrelators.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/mtfishman/ITensorCorrelators.jl/actions/workflows/CI.yml?query=branch%3Amain)
-[![Coverage](https://codecov.io/gh/mtfishman/ITensorCorrelators.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/mtfishman/ITensorCorrelators.jl)
-[![Code Style: Blue](https://img.shields.io/badge/code%20style-blue-4495d1.svg)](https://github.com/invenia/BlueStyle)
+This is a package for efficiently measuring n-point correlators of matrix product states (MPS), built on top of the [ITensors.jl](https://github.com/ITensor/ITensors.jl) library.
 
-Install for development:
+## Installation
+
+This package is currently not registered. You can install it with:
 ```julia
 julia> using Pkg
 
-julia> Pkg.develop(url="git@github.com:ITensor/ITensorCorrelators.jl.git")
+julia> Pkg.add(url="https://github.com/ITensor/ITensorCorrelators.jl.git")
 ```
-and then you can develop the package by editing the repository cloned to `~/.julia/dev/ITensorCorrelators`.
+
+## Usage
+
+To compute the correlator `<Sz_i Sz_j Sz_k Sz_l>` on some set of sites `i, j, k, l`, you can use the `correlator` function:
+```julia
+using ITensors
+using ITensorCorrelators
+
+s = siteinds("S=1/2", 10)
+psi = randomMPS(s; linkdims=10)
+
+c = correlator(psi, ("Sz", "Sz", "Sz", "Sz"), [(1, 3, 4, 5), (2, 3, 4, 5), (3, 4, 5, 10)])
+c[(2, 3, 4, 5)]
+```
+This outputs a dictionary mapping the set of sites `i, j, k, l` to the resulting correlator `<Sz_i Sz_j Sz_k Sz_l>`, so in the case above we are accessing the correlator `<Sz_2 Sz_3 Sz_4 Sz_5>`.
+
+Note that currently, the package does not handle the case of repeated sites properly (i.e. it doesn't handle inputs `(2, 3, 3, 5)` properly). However, it should handle fermionic operators like `Cdag` and `C` properly.
