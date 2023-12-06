@@ -1,3 +1,5 @@
+using TupleTools: TupleTools
+
 # correlator(("A", "B", "C", "D"), [(1, 2, 3, 4), (1, 2, 4, 5), ...])
 function correlator_recursive_compact(
   psi, #::MPS,
@@ -52,7 +54,7 @@ function add_operator(
 
     if counter == N
       R = ((op_ind) < length(psi) ? delta(dag(ln[op_ind]), ln[op_ind]') : ITensor(1.0)) #create right system
-      C[tuple([element[k] for k in [findall(x -> x == j, indices)[1] for j in sort(indices)]]...)] = inner(
+      C[tuple([element[k] for k in [findall(x -> x == j, indices)[1] for j in TupleTools.sort(indices)]]...)] = inner(
         dag(L), R
       )
     else
@@ -105,7 +107,7 @@ function add_operator_repeat(
 
     if counter == N
       R = ((op_ind) < length(psi) ? delta(dag(ln[op_ind]), ln[op_ind]') : ITensor(1.0)) #create right system
-      C[tuple([element[k] for k in [findall(x -> x == j, indices)[1] for j in sort(indices)]]...)] = inner(
+      C[tuple([element[k] for k in [findall(x -> x == j, indices)[1] for j in TupleTools.sort(indices)]]...)] = inner(
         dag(L), R
       )
     else
@@ -189,7 +191,7 @@ function add_operator_fermi(
 
     if counter == N
       R = ((op_ind) < length(psi) ? delta(dag(ln[op_ind]), ln[op_ind]') : ITensor(1.0)) #create right system
-      C[tuple([element[k] for k in [findall(x -> x == j, indices)[1] for j in sort(indices)]]...)] = inner(
+      C[tuple([element[k] for k in [findall(x -> x == j, indices)[1] for j in TupleTools.sort(indices)]]...)] = inner(
         dag(L), R
       )
       #push!(C, tuple([element[k] for k in [findall(x->x==j,indices)[1] for j in sort(indices)]]...) => inner(dag(L), R))
