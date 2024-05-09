@@ -1,6 +1,6 @@
 # ITensorCorrelators
 
-This is a package for efficiently measuring n-point correlators of matrix product states (MPS), built on top of the [ITensors.jl](https://github.com/ITensor/ITensors.jl) library.
+This is a package for efficiently measuring n-point correlators of matrix product states (MPS), built on top of the [ITensors.jl](https://github.com/ITensor/ITensors.jl) and [ITensorMPS.jl](https://github.com/ITensor/ITensorMPS.jl) libraries.
 
 ## Installation
 
@@ -15,7 +15,7 @@ julia> Pkg.add(url="https://github.com/ITensor/ITensorCorrelators.jl.git")
 
 As an example, to compute the correlator `<Sz_i Sz_j Sz_k Sz_l>` on some set of sites `i, j, k, l`, you can use the `correlator` function:
 ```julia
-using ITensors
+using ITensors, ITensorMPS
 using ITensorCorrelators
 
 s = siteinds("S=1/2", 10)
