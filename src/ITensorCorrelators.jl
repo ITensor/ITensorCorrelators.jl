@@ -1,6 +1,6 @@
 module ITensorCorrelators
 
-using ITensors
+using ITensors, ITensorMPS
 
 include("correlator_bosonic_repeat.jl")
 include("correlator_bosonic_recursive.jl")
