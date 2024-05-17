@@ -30,7 +30,7 @@ end
 
 function main(; N)
   s = siteinds("Electron", N; conserve_qns=true)
-  psi = randomMPS(s, j -> isodd(j) ? "Up" : "Dn")
+  psi = random_mps(s, j -> isodd(j) ? "Up" : "Dn")
 
   H = MPO(ham(N; t=1, U=2), s)
   E, psi = dmrg(H, psi; nsweeps=4, maxdim=50)
