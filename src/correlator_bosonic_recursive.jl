@@ -193,16 +193,18 @@ function add_operator_fermi(
 
     # need to sort out jordan-wigner for repeated indices
 
-    jw_next = 0
-    if ops[counter] == "Cdagup" ||
-      ops[counter] == "Cdag" ||
-      ops[counter] == "Cup" ||
-      ops[counter] == "C"
-      jw_next = jw + 1
-      op_psi = apply(op("F", s[op_ind]), op_psi) #track if a fermionic operator was applied
-    elseif ops[counter] == "Cdagdn" || ops[counter] == "Cdn"
-      jw_next = jw + 1
-      op_psi = apply(op("F", s[op_ind]), op_psi) #for spin down operator we need a j-w term on-site
+    jw_next = jw
+    for i=0:repeat
+      if ops[counter+i] == "Cdagup" ||
+        ops[counter+i] == "Cdag" ||
+        ops[counter+i] == "Cup" ||
+        ops[counter+i] == "C"
+        jw_next = jw_next + 1
+        op_psi = apply(op("F", s[op_ind]), op_psi) #track if a fermionic operator was applied
+      elseif ops[counter+i] == "Cdagdn" || ops[counter+i] == "Cdn"
+        jw_next = jw_next + 1
+        op_psi = apply(op("F", s[op_ind]), op_psi) #for spin down operator we need a j-w term on-site
+      end
     end
 
     L = L * op_psi * psi_dag[op_ind]  #generate left environment to store
