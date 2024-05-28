@@ -6,6 +6,7 @@ function correlator_recursive_compact(
   ops, #::Tuple{Vararg{String}},
   sites; #::Vector{Tuple{Vararg{Int}}},
   indices=nothing,
+  repeats=nothing
 )
   if indices === nothing #assumes all the sites are already properly ordered
     indices = collect(1:length(ops))
@@ -20,10 +21,13 @@ function correlator_recursive_compact(
 
   orthogonalize!(psi, 1)
   psi_dag = prime(linkinds, dag(psi))
-  @show sites
-  op_inds = unique(getindex.(sites, 1))
+  op_inds_old = unique(getindex.(sites, 1))
+  @show op_inds_old
+  #op_inds = getindex.(sites, 1)
+  #repeats = [count(==(sites[idx][1]),sites[idx])-1 for idx=1:length(sites)]   # counts how many times site index is repeated in site. repeat=0 means index only occurs once.
+  op_inds = unique([(sites[idx][1],count(==(sites[idx][1]),sites[idx])-1) for idx=1:length(sites)])
   @show op_inds
-  println("__________________________")
+  println("_________________________________________________")
   s = siteinds(psi) #this can be done before orth.
   ln = linkinds(psi)
   psi_dag = prime(linkinds, dag(psi)) #opposite MPS to contract
@@ -160,8 +164,12 @@ function add_operator_fermi(
   indices,
   jw,
 )
+
   for (a, op_ind) in enumerate(op_inds)
-    element[counter] = op_ind 
+    repeat = op_ind[2]  # counts how many times op_ind is repeated. repeat=0 means op_ind occurs once.
+    op_ind = op_ind[1]
+    #element[counter] = op_ind
+    element[counter:counter+repeat] .= op_ind
     if counter == 1
       orthogonalize!(psi, op_ind) #after orthogonalize weird things happen to the indices, have to do it before taking indices
       s = siteinds(psi) #this can be done before orth.
@@ -176,7 +184,14 @@ function add_operator_fermi(
     if jw % 2 != 0
       op_psi = apply(op("F", s[op_ind]), op_psi) #apply jordan wigner string if needed
     end
-    op_psi = apply(op(ops[counter], s[op_ind]), op_psi)  #apply operator in the spot #counter
+
+    # operator to the right acting first
+    #op_psi = apply(op(ops[counter], s[op_ind]), op_psi)  #apply operator in the spot #counter
+    for i=0:repeat
+      op_psi = apply(op(ops[counter+repeat-i], s[op_ind]), op_psi)
+    end
+
+    # need to sort out jordan-wigner for repeated indices
 
     jw_next = 0
     if ops[counter] == "Cdagup" ||
@@ -192,7 +207,7 @@ function add_operator_fermi(
 
     L = L * op_psi * psi_dag[op_ind]  #generate left environment to store
 
-    if counter == N
+    if counter+repeat == N
       R = ((op_ind) < length(psi) ? delta(dag(ln[op_ind]), ln[op_ind]') : ITensor(1.0)) #create right system
       C[tuple([element[k] for k in [findall(x -> x == j, indices)[1] for j in TupleTools.sort(indices)]]...)] = inner(
         dag(L), R
@@ -200,13 +215,19 @@ function add_operator_fermi(
       #push!(C, tuple([element[k] for k in [findall(x->x==j,indices)[1] for j in sort(indices)]]...) => inner(dag(L), R))
       L = 0
     else
-      @show sites_ind_prev
-      sites_ind = sites_ind_prev[findall(x -> x[counter] == op_ind, sites_ind_prev)] #checking if there are more terms with the element #counter in operators to compute
+      @show op_ind
+      @show repeat
+      sites_ind = sites_ind_prev[findall(x -> x[counter+repeat] == op_ind, sites_ind_prev)] #checking if there are more terms with the element #counter in operators to compute
       @show sites_ind
-      op_inds_next = unique(getindex.(sites_ind, counter + 1)) #getting the sites counter+1 in the string 
+      op_inds_next_old = unique(getindex.(sites_ind, counter + repeat + 1)) #getting the sites counter+1 in the string
+      @show op_inds_next_old
+      #op_inds_next = getindex.(sites_ind, counter + repeat + 1) #getting the sites counter+repeat+1 in the string 
+      #repeats = [count(==(sites[idx][counter+repeat+1]),sites[idx])-1 for idx=1:length(sites)]   # counts how many times site index is repeated in site.
+      op_inds_next = unique([(sites_ind[idx][counter+repeat+1],count(==(sites_ind[idx][counter+repeat+1]),sites_ind[idx])-1) for idx=1:length(sites_ind)])
+      deleteat!(op_inds_next,findall(x->x[1]==op_ind,op_inds_next))
       @show op_inds_next
-      println("_____________________")
-      for str in (op_ind + 1):(op_inds_next[1] - 1) #contract until the next operator to apply (with jw if required)
+      println("_________________________________________________________")
+      for str in (op_ind + 1):(op_inds_next[1][1] - 1) #contract until the next operator to apply (with jw if required)
         if jw_next % 2 != 0
           L = L * apply(op("F", s[str]), psi[str]) * psi_dag[str]
         else
@@ -217,7 +238,7 @@ function add_operator_fermi(
         op_inds_next,
         sites_ind,
         L,
-        counter + 1,
+        counter + repeat + 1,
         element,
         N,
         ops,
@@ -231,7 +252,7 @@ function add_operator_fermi(
       )
     end
     if (a < length(op_inds))
-      for str in (op_ind):(op_inds[a + 1] - 1)
+      for str in (op_ind):(op_inds[a + 1][1] - 1)
         if jw % 2 != 0
           L_prev = L_prev * apply(op("F", s[str]), psi[str]) * psi_dag[str]
         else
