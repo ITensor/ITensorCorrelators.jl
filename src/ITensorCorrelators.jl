@@ -1,4 +1,4 @@
-module ITensorCorrelators
+#module ITensorCorrelators
 
 using ITensors, ITensorMPS
 
@@ -8,7 +8,7 @@ include("correlator_bosonic_recursive.jl")
 function correlator(
   psi,
   cor_ops, #operator string to be computed, i.e. ("X","Y","Z")
-  op_sites, #list of tuples witht the sites where cor_ops are applied (does NOT have to be ordered)
+  op_sites, #list of tuples with the sites where cor_ops are applied (does NOT have to be ordered)
 )
   indices = similar(op_sites)
   op_sorted = similar(op_sites)
@@ -19,7 +19,7 @@ function correlator(
   end
 
   #C = Dict{Tuple{Vararg{Int64}}, ComplexF64}()
-  #for i in 1:length(unique(indices)) #compute correlator separatedly for every possible order of sites
+  #for i in 1:length(unique(indices)) #compute correlator separately for every possible order of sites
   i = 1
   ind_sites = unique(indices)[i]
   op_sites_ord = [op_sorted[j] for j in findall(x -> x == ind_sites, indices)]
@@ -31,4 +31,4 @@ end
 
 export correlator
 
-end
+#end

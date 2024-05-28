@@ -20,7 +20,10 @@ function correlator_recursive_compact(
 
   orthogonalize!(psi, 1)
   psi_dag = prime(linkinds, dag(psi))
+  @show sites
   op_inds = unique(getindex.(sites, 1))
+  @show op_inds
+  println("__________________________")
   s = siteinds(psi) #this can be done before orth.
   ln = linkinds(psi)
   psi_dag = prime(linkinds, dag(psi)) #opposite MPS to contract
@@ -158,7 +161,7 @@ function add_operator_fermi(
   jw,
 )
   for (a, op_ind) in enumerate(op_inds)
-    element[counter] = op_ind
+    element[counter] = op_ind 
     if counter == 1
       orthogonalize!(psi, op_ind) #after orthogonalize weird things happen to the indices, have to do it before taking indices
       s = siteinds(psi) #this can be done before orth.
@@ -167,7 +170,7 @@ function add_operator_fermi(
       L_prev = (op_ind > 1 ? delta(dag(ln[op_ind - 1])', ln[op_ind - 1]) : 1.0) #initialize left environment
     end
 
-    L = L_prev#copy(L_prev) #copy cached environment after applying previous operator (this can be simplified)
+    L = L_prev  #copy(L_prev) #copy cached environment after applying previous operator (this can be simplified)
     op_psi = psi[op_ind]
 
     if jw % 2 != 0
@@ -184,7 +187,7 @@ function add_operator_fermi(
       op_psi = apply(op("F", s[op_ind]), op_psi) #track if a fermionic operator was applied
     elseif ops[counter] == "Cdagdn" || ops[counter] == "Cdn"
       jw_next = jw + 1
-      op_psi = apply(op("F", s[op_ind]), op_psi) #for spin down operator we need a j-w term on-sitw
+      op_psi = apply(op("F", s[op_ind]), op_psi) #for spin down operator we need a j-w term on-site
     end
 
     L = L * op_psi * psi_dag[op_ind]  #generate left environment to store
@@ -197,9 +200,12 @@ function add_operator_fermi(
       #push!(C, tuple([element[k] for k in [findall(x->x==j,indices)[1] for j in sort(indices)]]...) => inner(dag(L), R))
       L = 0
     else
+      @show sites_ind_prev
       sites_ind = sites_ind_prev[findall(x -> x[counter] == op_ind, sites_ind_prev)] #checking if there are more terms with the element #counter in operators to compute
+      @show sites_ind
       op_inds_next = unique(getindex.(sites_ind, counter + 1)) #getting the sites counter+1 in the string 
-
+      @show op_inds_next
+      println("_____________________")
       for str in (op_ind + 1):(op_inds_next[1] - 1) #contract until the next operator to apply (with jw if required)
         if jw_next % 2 != 0
           L = L * apply(op("F", s[str]), psi[str]) * psi_dag[str]
