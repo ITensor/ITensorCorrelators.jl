@@ -22,12 +22,9 @@ function correlator_recursive_compact(
   orthogonalize!(psi, 1)
   psi_dag = prime(linkinds, dag(psi))
   op_inds_old = unique(getindex.(sites, 1))
-  @show op_inds_old
   #op_inds = getindex.(sites, 1)
   #repeats = [count(==(sites[idx][1]),sites[idx])-1 for idx=1:length(sites)]   # counts how many times site index is repeated in site. repeat=0 means index only occurs once.
   op_inds = unique([(sites[idx][1],count(==(sites[idx][1]),sites[idx])-1) for idx=1:length(sites)])
-  @show op_inds
-  println("_________________________________________________")
   s = siteinds(psi) #this can be done before orth.
   ln = linkinds(psi)
   psi_dag = prime(linkinds, dag(psi)) #opposite MPS to contract
@@ -217,18 +214,12 @@ function add_operator_fermi(
       #push!(C, tuple([element[k] for k in [findall(x->x==j,indices)[1] for j in sort(indices)]]...) => inner(dag(L), R))
       L = 0
     else
-      @show op_ind
-      @show repeat
       sites_ind = sites_ind_prev[findall(x -> x[counter+repeat] == op_ind, sites_ind_prev)] #checking if there are more terms with the element #counter in operators to compute
-      @show sites_ind
-      op_inds_next_old = unique(getindex.(sites_ind, counter + repeat + 1)) #getting the sites counter+1 in the string
-      @show op_inds_next_old
+      #op_inds_next = unique(getindex.(sites_ind, counter + repeat + 1)) #getting the sites counter+1 in the string
       #op_inds_next = getindex.(sites_ind, counter + repeat + 1) #getting the sites counter+repeat+1 in the string 
       #repeats = [count(==(sites[idx][counter+repeat+1]),sites[idx])-1 for idx=1:length(sites)]   # counts how many times site index is repeated in site.
       op_inds_next = unique([(sites_ind[idx][counter+repeat+1],count(==(sites_ind[idx][counter+repeat+1]),sites_ind[idx])-1) for idx=1:length(sites_ind)])
       deleteat!(op_inds_next,findall(x->x[1]==op_ind,op_inds_next))
-      @show op_inds_next
-      println("_________________________________________________________")
       for str in (op_ind + 1):(op_inds_next[1][1] - 1) #contract until the next operator to apply (with jw if required)
         if jw_next % 2 != 0
           L = L * apply(op("F", s[str]), psi[str]) * psi_dag[str]

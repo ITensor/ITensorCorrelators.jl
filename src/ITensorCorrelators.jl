@@ -1,4 +1,4 @@
-#module ITensorCorrelators
+module ITensorCorrelators
 
 using ITensors, ITensorMPS
 
@@ -17,17 +17,13 @@ function correlator(
     op_sorted[i] = tuple(sort([op_site...])...)
     indices[i] = tuple([findall(x -> x == j, op_site)[1] for j in op_sorted[i]]...) #store the order of the unordered sites strings
   end
-  @show op_sorted
   #C = Dict{Tuple{Vararg{Int64}}, ComplexF64}()
   #for i in 1:length(unique(indices)) #compute correlator separately for every possible order of sites
   i = 1
-  @show indices
   ind_sites = unique(indices)[i]
-  @show ind_sites
   #op_sites_ord = [op_sorted[j] for j in findall(x -> x == ind_sites, indices)]
   op_sites_ord = op_sorted
   @assert all(issorted, indices) "Site indices need to be normal ordered"   # would be good if all orders worked
-  @show op_sites_ord
   cor_ops_ord = tuple([cor_ops[j] for j in ind_sites]...)
   C = correlator_recursive_compact(psi, cor_ops_ord, op_sites_ord; indices=ind_sites,)
   #end 
@@ -36,4 +32,4 @@ end
 
 export correlator
 
-#end
+end
