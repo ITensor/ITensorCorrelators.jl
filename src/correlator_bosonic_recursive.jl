@@ -32,7 +32,6 @@ function correlator_recursive_compact(
   counter = 1
   jw = 0 #keeps track of the number of fermionic operator to add a jordan-wigner term
   element = zeros(Int64, N)
-
   add_operator_fermi(
     op_inds, sites, L, counter, element, N, ops, s, ln, psi, psi_dag, C, indices, jw
   )
@@ -208,9 +207,10 @@ function add_operator_fermi(
 
     if counter+repeat == N
       R = ((op_ind) < length(psi) ? delta(dag(ln[op_ind]), ln[op_ind]') : ITensor(1.0)) #create right system
-      C[tuple([element[k] for k in [findall(x -> x == j, indices)[1] for j in TupleTools.sort(indices)]]...)] = inner(
-        dag(L), R
-      )
+      #C[tuple([element[k] for k in [findall(x -> x == j, indices)[1] for j in TupleTools.sort(indices)]]...)] = inner(
+      #  dag(L), R
+      #)
+      C[tuple(element...)] = inner(dag(L),R)
       #push!(C, tuple([element[k] for k in [findall(x->x==j,indices)[1] for j in sort(indices)]]...) => inner(dag(L), R))
       L = 0
     else
