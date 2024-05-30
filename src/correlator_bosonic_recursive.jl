@@ -5,8 +5,7 @@ function correlator_recursive_compact(
   psi, #::MPS,
   ops, #::Tuple{Vararg{String}},
   sites; #::Vector{Tuple{Vararg{Int}}},
-  indices=nothing,
-  repeats=nothing
+  indices=nothing
 )
   if indices === nothing #assumes all the sites are already properly ordered
     indices = collect(1:length(ops))
@@ -21,7 +20,7 @@ function correlator_recursive_compact(
 
   orthogonalize!(psi, 1)
   psi_dag = prime(linkinds, dag(psi))
-  op_inds_old = unique(getindex.(sites, 1))
+  #op_inds = unique(getindex.(sites, 1))
   #op_inds = getindex.(sites, 1)
   #repeats = [count(==(sites[idx][1]),sites[idx])-1 for idx=1:length(sites)]   # counts how many times site index is repeated in site. repeat=0 means index only occurs once.
   op_inds = unique([(sites[idx][1],count(==(sites[idx][1]),sites[idx])-1) for idx=1:length(sites)])
@@ -32,6 +31,8 @@ function correlator_recursive_compact(
   counter = 1
   jw = 0 #keeps track of the number of fermionic operator to add a jordan-wigner term
   element = zeros(Int64, N)
+  @show op_inds
+  @show sites
   add_operator_fermi(
     op_inds, sites, L, counter, element, N, ops, s, ln, psi, psi_dag, C, indices, jw
   )
@@ -215,6 +216,10 @@ function add_operator_fermi(
       L = 0
     else
       sites_ind = sites_ind_prev[findall(x -> x[counter+repeat] == op_ind, sites_ind_prev)] #checking if there are more terms with the element #counter in operators to compute
+      @show op_ind
+      @show sites_ind_prev
+      @show sites_ind
+      @show indices
       #op_inds_next = unique(getindex.(sites_ind, counter + repeat + 1)) #getting the sites counter+1 in the string
       #op_inds_next = getindex.(sites_ind, counter + repeat + 1) #getting the sites counter+repeat+1 in the string 
       #repeats = [count(==(sites[idx][counter+repeat+1]),sites[idx])-1 for idx=1:length(sites)]   # counts how many times site index is repeated in site.
