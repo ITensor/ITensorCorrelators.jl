@@ -13,7 +13,7 @@ function correlator_recursive_compact(
 
   sites = sort(sites) # Sort the sites along y
   N = length(sites[1])
-  @assert all(issorted, sites) # Check that each elements of `sites` is sorted
+  #@assert all(issorted, sites) # Check that each elements of `sites` is sorted
 
   C = Dict{Tuple{Vararg{Int64}},ComplexF64}() #initialize dictionary to store data
   #C = zeros(ComplexF64, length(psi), length(psi), length(psi), length(psi)) #should we output a list or a NxNxNxN matrix?
@@ -31,8 +31,6 @@ function correlator_recursive_compact(
   counter = 1
   jw = 0 #keeps track of the number of fermionic operator to add a jordan-wigner term
   element = zeros(Int64, N)
-  @show op_inds
-  @show sites
   add_operator_fermi(
     op_inds, sites, L, counter, element, N, ops, s, ln, psi, psi_dag, C, indices, jw
   )
@@ -182,13 +180,18 @@ function add_operator_fermi(
       op_psi = apply(op("F", s[op_ind]), op_psi) #apply jordan wigner string if needed
     end
 
-    # operator to the right acting first
-    #op_psi = apply(op(ops[counter], s[op_ind]), op_psi)  #apply operator in the spot #counter
-    for i=0:repeat
-      op_psi = apply(op(ops[counter+repeat-i], s[op_ind]), op_psi)
-    end
+    # fix this here, should not return tuples that are not part of the branch
+    sites_ind = sites_ind_prev[findall(x -> x[counter+repeat] == op_ind, sites_ind_prev)]
+    @show op_ind
+    @show sites_ind
+    perm = sortperm([sites_ind[1]...])
 
-    # need to sort out jordan-wigner for repeated indices
+    #op_psi = apply(op(ops[counter], s[op_ind]), op_psi)  #apply operator in the spot #counter
+    # operator to the right acting first
+    for i=0:repeat
+      #op_psi = apply(op(ops[counter+repeat-i], s[op_ind]), op_psi)
+      op_psi = apply(op(ops[perm[counter+repeat-i]], s[op_ind]), op_psi)
+    end
 
     jw_next = jw
     for i=0:repeat
@@ -216,10 +219,6 @@ function add_operator_fermi(
       L = 0
     else
       sites_ind = sites_ind_prev[findall(x -> x[counter+repeat] == op_ind, sites_ind_prev)] #checking if there are more terms with the element #counter in operators to compute
-      @show op_ind
-      @show sites_ind_prev
-      @show sites_ind
-      @show indices
       #op_inds_next = unique(getindex.(sites_ind, counter + repeat + 1)) #getting the sites counter+1 in the string
       #op_inds_next = getindex.(sites_ind, counter + repeat + 1) #getting the sites counter+repeat+1 in the string 
       #repeats = [count(==(sites[idx][counter+repeat+1]),sites[idx])-1 for idx=1:length(sites)]   # counts how many times site index is repeated in site.
