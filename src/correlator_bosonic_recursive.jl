@@ -23,7 +23,7 @@ function correlator_recursive_compact(
   #op_inds = unique(getindex.(sites, 1))
   #op_inds = getindex.(sites, 1)
   #repeats = [count(==(sites[idx][1]),sites[idx])-1 for idx=1:length(sites)]   # counts how many times site index is repeated in site. repeat=0 means index only occurs once.
-  op_inds = unique([(sort([sites[idx]...])[1],count(==(sites[idx][1]),sites[idx])-1,sortperm([sites[idx]...])) for idx=1:length(sites)])
+  op_inds = unique([(sort([sites[idx]...])[1],count(==(sort([sites[idx]...])[1]),sites[idx])-1,sortperm([sites[idx]...])) for idx=1:length(sites)])
   #@show sites
   #@show op_inds
   s = siteinds(psi) #this can be done before orth.
@@ -205,7 +205,7 @@ function add_operator_fermi(
     # operator to the right acting first
     for i=0:repeat
       #op_psi = apply(op(ops[counter+repeat-i], s[op_ind]), op_psi)
-      #println("Applying operator ",ops[perm[counter+repeat-i]], " on site ", op_ind)
+      #println("Applying operator ",ops[perm_ind[counter+repeat-i]], " on site ", op_ind)
       op_psi = apply(op(ops[perm_ind[counter+repeat-i]], s[op_ind]), op_psi)
     end
 
@@ -230,22 +230,31 @@ function add_operator_fermi(
       #C[tuple([element[k] for k in [findall(x -> x == j, indices)[1] for j in TupleTools.sort(indices)]]...)] = inner(
       #  dag(L), R
       #)
-
+      test = sort(element)
+      #@show test
+      #@show perm_ind
+      #@show element[perm_ind]
+      perm_elem = zeros(length(test))
+      for i=1:length(test)
+        perm_elem[perm_ind[i]] = test[i]
+      end
+      #@show element[perm_ind]
       #reorder element with permutations
-      C[tuple(element[perm_ind]...)] = inner(dag(L),R)
-
+      #C[tuple(element[perm_ind]...)] = inner(dag(L),R)
+      #C[tuple((sort(element)[perm_ind])...)] = inner(dag(L),R)
+      C[tuple(perm_elem...)] = inner(dag(L),R)
       #C[tuple(sites_ind[1]...)] = inner(dag(L),R)
       #@show C[tuple(element...)]
       #push!(C, tuple([element[k] for k in [findall(x->x==j,indices)[1] for j in sort(indices)]]...) => inner(dag(L), R))
       L = 0
     else
-      sites_ind = sites_ind_prev[findall(x -> x[counter+repeat] == op_ind, sites_ind_prev)] #checking if there are more terms with the element #counter in operators to compute
+      #sites_ind = sites_ind_prev[findall(x -> x[counter+repeat] == op_ind, sites_ind_prev)] #checking if there are more terms with the element #counter in operators to compute
       sites_ind = sites_ind_prev[findall(x -> sort([x...])[counter+repeat] == op_ind, sites_ind_prev)]
       #op_inds_next = unique(getindex.(sites_ind, counter + repeat + 1)) #getting the sites counter+1 in the string
       #op_inds_next = getindex.(sites_ind, counter + repeat + 1) #getting the sites counter+repeat+1 in the string 
       #repeats = [count(==(sites[idx][counter+repeat+1]),sites[idx])-1 for idx=1:length(sites)]   # counts how many times site index is repeated in site.
       #op_inds_next = unique([(sites_ind[idx][counter+repeat+1],count(==(sites_ind[idx][counter+repeat+1]),sites_ind[idx])-1) for idx=1:length(sites_ind)])
-      op_inds_next = unique([(sort([sites_ind[idx]...])[counter+repeat+1],count(==(sites_ind[idx][counter+repeat+1]),sites_ind[idx])-1,sortperm([sites_ind[idx]...])) for idx=1:length(sites_ind)])
+      op_inds_next = unique([(sort([sites_ind[idx]...])[counter+repeat+1],count(==(sort([sites_ind[idx]...])[counter+repeat+1]),sites_ind[idx])-1,sortperm([sites_ind[idx]...])) for idx=1:length(sites_ind)])
       op_inds_next = op_inds_next[findall(x->x[3]==perm_ind,op_inds_next)]
       deleteat!(op_inds_next,findall(x->x[1]==op_ind,op_inds_next))
       #@show counter
