@@ -1,4 +1,5 @@
 using TupleTools: TupleTools
+using Combinatorics
 
 # correlator(("A", "B", "C", "D"), [(1, 2, 3, 4), (1, 2, 4, 5), ...])
 function correlator_recursive_compact(
@@ -211,13 +212,13 @@ function add_operator_fermi(
 
     jw_next = jw
     for i=0:repeat
-      if ops[counter+i] == "Cdagup" ||
-        ops[counter+i] == "Cdag" ||
-        ops[counter+i] == "Cup" ||
-        ops[counter+i] == "C"
+      if ops[perm_ind[counter+repeat-i]] == "Cdagup" ||
+        ops[perm_ind[counter+repeat-i]] == "Cdag" ||
+        ops[perm_ind[counter+repeat-i]] == "Cup" ||
+        ops[perm_ind[counter+repeat-i]] == "C"
         jw_next = jw_next + 1
         op_psi = apply(op("F", s[op_ind]), op_psi) #track if a fermionic operator was applied
-      elseif ops[counter+i] == "Cdagdn" || ops[counter+i] == "Cdn"
+      elseif ops[perm_ind[counter+repeat-i]] == "Cdagdn" || ops[perm_ind[counter+repeat-i]] == "Cdn"
         jw_next = jw_next + 1
         op_psi = apply(op("F", s[op_ind]), op_psi) #for spin down operator we need a j-w term on-site
       end
@@ -230,19 +231,23 @@ function add_operator_fermi(
       #C[tuple([element[k] for k in [findall(x -> x == j, indices)[1] for j in TupleTools.sort(indices)]]...)] = inner(
       #  dag(L), R
       #)
-      test = sort(element)
-      #@show test
-      #@show perm_ind
-      #@show element[perm_ind]
-      perm_elem = zeros(length(test))
-      for i=1:length(test)
-        perm_elem[perm_ind[i]] = test[i]
+
+      fermions = [(ops[i] in ["C","Cdag","Cup","Cdagup","Cdn","Cdagdn"] ? 1 : 0) for i=1:length(ops)]
+      
+
+      perm_elem = zeros(length(element))
+      for i=1:length(element)
+        perm_elem[perm_ind[i]] = sort(element)[i]
       end
+
+      ferm_sites = Int64.(perm_elem[findall(x -> x in ["C","Cdag","Cup","Cdagup","Cdn","Cdagdn"],ops)])
+      #@show ferm_sites
+      par = 1-2*parity(sortperm(ferm_sites))
       #@show element[perm_ind]
       #reorder element with permutations
       #C[tuple(element[perm_ind]...)] = inner(dag(L),R)
       #C[tuple((sort(element)[perm_ind])...)] = inner(dag(L),R)
-      C[tuple(perm_elem...)] = inner(dag(L),R)
+      C[tuple(perm_elem...)] = par*inner(dag(L),R)
       #C[tuple(sites_ind[1]...)] = inner(dag(L),R)
       #@show C[tuple(element...)]
       #push!(C, tuple([element[k] for k in [findall(x->x==j,indices)[1] for j in sort(indices)]]...) => inner(dag(L), R))
