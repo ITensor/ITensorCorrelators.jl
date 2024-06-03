@@ -24,7 +24,8 @@ function correlator_recursive_compact(
   #op_inds = unique(getindex.(sites, 1))
   #op_inds = getindex.(sites, 1)
   #repeats = [count(==(sites[idx][1]),sites[idx])-1 for idx=1:length(sites)]   # counts how many times site index is repeated in site. repeat=0 means index only occurs once.
-  op_inds = unique([(sort([sites[idx]...])[1],count(==(sort([sites[idx]...])[1]),sites[idx])-1,sortperm([sites[idx]...])) for idx=1:length(sites)])
+  #op_inds = unique([(sort([sites[idx]...])[1],count(==(sort([sites[idx]...])[1]),sites[idx])-1,sortperm([sites[idx]...])) for idx=1:length(sites)])
+  op_inds = unique([(sort([sites[idx]...])[1],count(==(sort([sites[idx]...])[1]),sites[idx])-1,sortperm([sites[idx]...])[1:count(==(sort([sites[idx]...])[1]),sites[idx])]) for idx=1:length(sites)])
   #@show sites
   #@show op_inds
   s = siteinds(psi) #this can be done before orth.
@@ -258,12 +259,16 @@ function add_operator_fermi(
     else
       #sites_ind = sites_ind_prev[findall(x -> x[counter+repeat] == op_ind, sites_ind_prev)] #checking if there are more terms with the element #counter in operators to compute
       sites_ind = sites_ind_prev[findall(x -> sort([x...])[counter+repeat] == op_ind, sites_ind_prev)]
+      #@show sites_ind
       #op_inds_next = unique(getindex.(sites_ind, counter + repeat + 1)) #getting the sites counter+1 in the string
       #op_inds_next = getindex.(sites_ind, counter + repeat + 1) #getting the sites counter+repeat+1 in the string 
       #repeats = [count(==(sites[idx][counter+repeat+1]),sites[idx])-1 for idx=1:length(sites)]   # counts how many times site index is repeated in site.
       #op_inds_next = unique([(sites_ind[idx][counter+repeat+1],count(==(sites_ind[idx][counter+repeat+1]),sites_ind[idx])-1) for idx=1:length(sites_ind)])
-      op_inds_next = unique([(sort([sites_ind[idx]...])[counter+repeat+1],count(==(sort([sites_ind[idx]...])[counter+repeat+1]),sites_ind[idx])-1,sortperm([sites_ind[idx]...])) for idx=1:length(sites_ind)])
-      op_inds_next = op_inds_next[findall(x->x[3]==perm_ind,op_inds_next)]
+      #op_inds_next = unique([(sort([sites_ind[idx]...])[counter+repeat+1],count(==(sort([sites_ind[idx]...])[counter+repeat+1]),sites_ind[idx])-1,sortperm([sites_ind[idx]...])) for idx=1:length(sites_ind)])
+      op_inds_next = unique([(sort([sites_ind[idx]...])[counter+repeat+1],count(==(sort([sites_ind[idx]...])[counter+repeat+1]),sites_ind[idx])-1,sortperm([sites_ind[idx]...])[1:counter+repeat+count(==(sort([sites_ind[idx]...])[counter+repeat+1]),sites_ind[idx])]) for idx=1:length(sites_ind)])
+      #@show op_inds_next
+      #@show perm_ind
+      op_inds_next = op_inds_next[findall(x->x[3][1:counter+repeat]==perm_ind,op_inds_next)]
       deleteat!(op_inds_next,findall(x->x[1]==op_ind,op_inds_next))
       #@show counter
       #@show op_ind
