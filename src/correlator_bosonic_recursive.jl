@@ -204,6 +204,8 @@ function add_operator_fermi(
     #@show sites_ind[1]
     #op_psi = apply(op(ops[counter], s[op_ind]), op_psi)  #apply operator in the spot #counter
     # operator to the right acting first
+    #@show perm_ind
+    #@show ops
     for i=0:repeat
       #op_psi = apply(op(ops[counter+repeat-i], s[op_ind]), op_psi)
       #println("Applying operator ",ops[perm_ind[counter+repeat-i]], " on site ", op_ind)
@@ -234,6 +236,8 @@ function add_operator_fermi(
 
       fermions = [(ops[i] in ["C","Cdag","Cup","Cdagup","Cdn","Cdagdn"] ? 1 : 0) for i=1:length(ops)]
       
+      #@show element
+      #@show perm_ind
 
       perm_elem = zeros(length(element))
       for i=1:length(element)
@@ -241,7 +245,6 @@ function add_operator_fermi(
       end
 
       ferm_sites = Int64.(perm_elem[findall(x -> x in ["C","Cdag","Cup","Cdagup","Cdn","Cdagdn"],ops)])
-      #@show ferm_sites
       par = 1-2*parity(sortperm(ferm_sites))
       #@show element[perm_ind]
       #reorder element with permutations
