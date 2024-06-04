@@ -24,11 +24,10 @@ function correlator_recursive_compact(
   
   inds_ord = [sort([sites[idx]...])[1] for idx=1:length(sites)]
   repeats = [count(==(sort([sites[idx]...])[1]),sites[idx])-1 for idx=1:length(sites)]
-  perms = [sortperm([sites[idx]...])[1:count(==(sort([sites[idx]...])[1]),sites[idx])] for idx=1:length(sites)]
+  perms = [sortperm([sites[idx]...])[1:repeats[idx]+1] for idx=1:length(sites)]
   
   op_inds = unique([(inds_ord[idx],repeats[idx],perms[idx]) for idx=1:length(sites)])
 
-  #@show op_inds
   s = siteinds(psi) #this can be done before orth.
   ln = linkinds(psi)
   psi_dag = prime(linkinds, dag(psi)) #opposite MPS to contract
@@ -36,8 +35,9 @@ function correlator_recursive_compact(
   counter = 1
   jw = 0 #keeps track of the number of fermionic operator to add a jordan-wigner term
   element = zeros(Int64, N)
+  #global op_counter = Ref{Int64}(0)
   add_operator_fermi(
-    op_inds, sites, L, counter, element, N, ops, s, ln, psi, psi_dag, C, indices, jw
+    op_inds, sites, L, counter, element, N, ops, s, ln, psi, psi_dag, C, indices, jw,
   )
   return C
 end
@@ -167,15 +167,9 @@ function add_operator_fermi(
 
   for (a, op_ind) in enumerate(op_inds)
 
-    #@show counter
-
     repeat = op_ind[2]  # counts how many times op_ind is repeated. repeat=0 means op_ind occurs once.
     perm_ind = op_ind[3]  # determines what operator acts on the site index
-    op_ind = op_ind[1]
-
-    #@show repeat
-    #@show op_ind
-    #@show perm_ind
+    op_ind = op_ind[1]  # the next site(s)
     
     element[counter:counter+repeat] .= op_ind
     if counter == 1
@@ -194,7 +188,6 @@ function add_operator_fermi(
     end
 
     for i=0:repeat
-      #println("Applied ", ops[perm_ind[counter+repeat-i]], " on site ", op_ind)
       op_psi = apply(op(ops[perm_ind[counter+repeat-i]], s[op_ind]), op_psi)
     end
 
@@ -217,54 +210,40 @@ function add_operator_fermi(
     if counter+repeat == N
       R = ((op_ind) < length(psi) ? delta(dag(ln[op_ind]), ln[op_ind]') : ITensor(1.0)) #create right system
 
+      # rearranging the sorted element list using permutations
+      perm_elem = element[sortperm(perm_ind)]
+
+      # checking for fermion operators and keeping track of anti-commutations
       fermions = [(ops[i] in ["C","Cdag","Cup","Cdagup","Cdn","Cdagdn"] ? 1 : 0) for i=1:length(ops)]
-
-      perm_elem = zeros(length(element))
-      for i=1:length(element)
-        perm_elem[perm_ind[i]] = sort(element)[i]
-      end
-
       ferm_sites = Int64.(perm_elem[findall(x -> x in ["C","Cdag","Cup","Cdagup","Cdn","Cdagdn"],ops)])
       par = 1-2*parity(sortperm(ferm_sites))
-      
+
       C[tuple(perm_elem...)] = par*inner(dag(L),R)
       L = 0
     else
-      #sites_ind = sites_ind_prev[findall(x -> x[counter+repeat] == op_ind, sites_ind_prev)] #checking if there are more terms with the element #counter in operators to compute
-      
-      
-      #sites_ind = sites_ind_prev[findall(x -> sort([x...])[counter+repeat] == op_ind, sites_ind_prev)]
+
+      # sets of sites consistent  with the current site
       sites_ind = sites_ind_prev[findall(x -> sort([x...])[counter+repeat] == op_ind, sites_ind_prev)]
-      #sites_ind = sites_ind_prev[findall(x -> [x...][perm_ind[counter+repeat]] == op_ind, sites_ind_prev)]
+
+      # the number of repeated sites in the next iteration
       repeat_next = [count(==(sort([sites_ind[idx]...])[counter+repeat+1]),sites_ind[idx])-1 for idx=1:length(sites_ind)]
-      inds_ord = [sort([sites_ind[idx]...])[counter+repeat+1] for idx=1:length(sites_ind)]
       
       sites_ind = sites_ind[findall(x -> x+counter+repeat<N,repeat_next)]
-      inds_ord = inds_ord[findall(x -> x+counter+repeat<N,repeat_next)]
+      #inds_ord = inds_ord[findall(x -> x+counter+repeat<N,repeat_next)]
       repeat_next = repeat_next[findall(x -> x+counter+repeat<N,repeat_next)]
 
-      
-
-      #@show counter
-      #@show op_ind
-      #@show repeat
-      #@show sites_ind
-      #@show inds_ord
-      #@show repeat_next
-      #perms = [sortperm([sites_ind[idx]...])[1:counter+repeat+count(==(sort([sites_ind[idx]...])[counter+repeat+1]),sites_ind[idx])] for idx=1:length(sites_ind)]
-      
-      #perms = [sortperm([sites_ind[idx]...])[1:counter+repeat+repeat_next[idx]+1] for idx=1:length(sites_ind)]
+      # get the next sites and the permutations 
+      inds_ord = [sort([sites_ind[idx]...])[counter+repeat+1] for idx=1:length(sites_ind)]
       perms = [sortperm([sites_ind[idx]...])[1:counter+repeat+repeat_next[idx]+1] for idx=1:length(sites_ind)]
 
-      #@show perms
-
+      # gather next site, the number of repeats, and permutation array into one vector
       op_inds_next = unique([(inds_ord[idx],repeat_next[idx],perms[idx]) for idx=1:length(sites_ind)])
 
-      #@show op_inds_next
-
-      op_inds_next = op_inds_next[findall(x->x[3][1:counter+repeat]==perm_ind,op_inds_next)]
+      # making sure the next iteration has the same permutation vector up until this point
+      op_inds_next = op_inds_next[findall(x->x[3][1:length(perm_ind)]==perm_ind,op_inds_next)]  # could probs do this earlier
       
-      deleteat!(op_inds_next,findall(x->x[1]==op_ind,op_inds_next))
+      # making sure the next site is not the same as the previous one
+      deleteat!(op_inds_next,findall(x->x[1]==op_ind,op_inds_next))   # can maybe do this earlier
 
       for str in (op_ind + 1):(op_inds_next[1][1] - 1) #contract until the next operator to apply (with jw if required)
         if jw_next % 2 != 0

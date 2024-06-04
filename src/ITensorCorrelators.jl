@@ -30,7 +30,6 @@ function correlator(
   #ind_sites = indices[i]
   #op_sites_ord = [op_sorted[j] for j in findall(x -> x == ind_sites, indices)]
   op_sites_ord = op_sites
-  # if we only look at the first set of sites, we are not going to get all the orderings of the operators
   #cor_ops_ord = tuple([cor_ops[j] for j in ind_sites]...)
   cor_ops_ord = cor_ops
   C = correlator_recursive_compact(psi, cor_ops_ord, op_sites_ord; indices=ind_sites,)
