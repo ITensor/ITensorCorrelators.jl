@@ -35,7 +35,7 @@ function correlator_recursive_compact(
   counter = 1
   jw = 0 #keeps track of the number of fermionic operator to add a jordan-wigner term
   element = zeros(Int64, N)
-  #global op_counter = Ref{Int64}(0)
+
   add_operator_fermi(
     op_inds, sites, L, counter, element, N, ops, s, ln, psi, psi_dag, C, indices, jw,
   )
