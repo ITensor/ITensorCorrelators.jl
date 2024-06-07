@@ -224,27 +224,24 @@ function add_operator_fermi(
 
       # The filtering of sites in next iteration could probably be sped up
 
-      # sets of sites consistent  with the current site
+      # sets of sites consistent with the current site
       sites_ind = sites_ind_prev[findall(x -> sort([x...])[counter+repeat] == op_ind, sites_ind_prev)]
+
+      # making sure the next site is not the same as the previous one, since the repeated indices are already taken care of
+      deleteat!(sites_ind,findall(x->sort([x...])[counter+repeat+1]==op_ind,sites_ind))
 
       # the number of repeated sites in the next iteration
       repeat_next = [count(==(sort([sites_ind[idx]...])[counter+repeat+1]),sites_ind[idx])-1 for idx=1:length(sites_ind)]
       
-      sites_ind = sites_ind[findall(x -> x+counter+repeat<N,repeat_next)]
-      repeat_next = repeat_next[findall(x -> x+counter+repeat<N,repeat_next)]
-
       # get the next sites and permutations 
       inds_ord = [sort([sites_ind[idx]...])[counter+repeat+1] for idx=1:length(sites_ind)]
       perms = [sortperm([sites_ind[idx]...])[1:counter+repeat+repeat_next[idx]+1] for idx=1:length(sites_ind)]
 
-      # gather next site, the number of repeats, and permutation array into one vector
+      # gather next site ind, the number of repeats, and permutation array into one vector
       op_inds_next = unique([(inds_ord[idx],repeat_next[idx],perms[idx]) for idx=1:length(sites_ind)])
 
       # making sure the next iteration has the same permutation vector up until this point
       op_inds_next = op_inds_next[findall(x->x[3][1:length(perm_ind)]==perm_ind,op_inds_next)]
-      
-      # making sure the next site is not the same as the previous one, since the repeated indices are already taken care of
-      deleteat!(op_inds_next,findall(x->x[1]==op_ind,op_inds_next))
 
       for str in (op_ind + 1):(op_inds_next[1][1] - 1) #contract until the next operator to apply (with jw if required)
         if jw_next % 2 != 0
