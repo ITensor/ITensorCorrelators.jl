@@ -1,4 +1,4 @@
-using TupleTools: TupleTools
+#using TupleTools: TupleTools
 using Combinatorics
 
 # correlator(("A", "B", "C", "D"), [(1, 2, 3, 4), (1, 2, 4, 5), ...])
@@ -210,7 +210,7 @@ function add_operator_fermi(
     if counter+repeat == N
       R = ((op_ind) < length(psi) ? delta(dag(ln[op_ind]), ln[op_ind]') : ITensor(1.0)) #create right system
 
-      # rearranging the sorted element list using permutations
+      # re-arranging the sorted element list using permutations
       perm_elem = element[sortperm(perm_ind)]
 
       # checking for fermion operators and keeping track of anti-commutations
@@ -222,6 +222,8 @@ function add_operator_fermi(
       L = 0
     else
 
+      # The filtering of sites in next iteration could probably be sped up
+
       # sets of sites consistent  with the current site
       sites_ind = sites_ind_prev[findall(x -> sort([x...])[counter+repeat] == op_ind, sites_ind_prev)]
 
@@ -229,10 +231,9 @@ function add_operator_fermi(
       repeat_next = [count(==(sort([sites_ind[idx]...])[counter+repeat+1]),sites_ind[idx])-1 for idx=1:length(sites_ind)]
       
       sites_ind = sites_ind[findall(x -> x+counter+repeat<N,repeat_next)]
-      #inds_ord = inds_ord[findall(x -> x+counter+repeat<N,repeat_next)]
       repeat_next = repeat_next[findall(x -> x+counter+repeat<N,repeat_next)]
 
-      # get the next sites and the permutations 
+      # get the next sites and permutations 
       inds_ord = [sort([sites_ind[idx]...])[counter+repeat+1] for idx=1:length(sites_ind)]
       perms = [sortperm([sites_ind[idx]...])[1:counter+repeat+repeat_next[idx]+1] for idx=1:length(sites_ind)]
 
@@ -240,10 +241,10 @@ function add_operator_fermi(
       op_inds_next = unique([(inds_ord[idx],repeat_next[idx],perms[idx]) for idx=1:length(sites_ind)])
 
       # making sure the next iteration has the same permutation vector up until this point
-      op_inds_next = op_inds_next[findall(x->x[3][1:length(perm_ind)]==perm_ind,op_inds_next)]  # could probs do this earlier
+      op_inds_next = op_inds_next[findall(x->x[3][1:length(perm_ind)]==perm_ind,op_inds_next)]
       
-      # making sure the next site is not the same as the previous one
-      deleteat!(op_inds_next,findall(x->x[1]==op_ind,op_inds_next))   # can maybe do this earlier
+      # making sure the next site is not the same as the previous one, since the repeated indices are already taken care of
+      deleteat!(op_inds_next,findall(x->x[1]==op_ind,op_inds_next))
 
       for str in (op_ind + 1):(op_inds_next[1][1] - 1) #contract until the next operator to apply (with jw if required)
         if jw_next % 2 != 0
