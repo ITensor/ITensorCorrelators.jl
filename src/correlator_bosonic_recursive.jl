@@ -22,6 +22,7 @@ function correlator_recursive_compact(
   orthogonalize!(psi, 1)
   psi_dag = prime(linkinds, dag(psi))
   
+  # computes the first index, the number of repeats, and permutation of the operators
   inds_ord = [sort([sites[idx]...])[1] for idx=1:length(sites)]
   repeats = [count(==(sort([sites[idx]...])[1]),sites[idx])-1 for idx=1:length(sites)]
   perms = [sortperm([sites[idx]...])[1:repeats[idx]+1] for idx=1:length(sites)]
@@ -214,7 +215,6 @@ function add_operator_fermi(
       perm_elem = element[sortperm(perm_ind)]
 
       # checking for fermion operators and keeping track of anti-commutations
-      fermions = [(ops[i] in ["C","Cdag","Cup","Cdagup","Cdn","Cdagdn"] ? 1 : 0) for i=1:length(ops)]
       ferm_sites = Int64.(perm_elem[findall(x -> x in ["C","Cdag","Cup","Cdagup","Cdn","Cdagdn"],ops)])
       par = 1-2*parity(sortperm(ferm_sites))
 
@@ -230,7 +230,7 @@ function add_operator_fermi(
       # making sure the next site is not the same as the previous one, since the repeated indices are already taken care of
       deleteat!(sites_ind,findall(x->sort([x...])[counter+repeat+1]==op_ind,sites_ind))
 
-      # the number of repeated sites in the next iteration
+      # the number of repeats of the site in the next iteration
       repeat_next = [count(==(sort([sites_ind[idx]...])[counter+repeat+1]),sites_ind[idx])-1 for idx=1:length(sites_ind)]
       
       # get the next sites and permutations 
