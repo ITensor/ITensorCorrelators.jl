@@ -214,10 +214,7 @@ function add_operator_fermi(
       perm_elem = element[sortperm(perm_ind)]
 
       # checking for fermion operators and keeping track of anti-commutations
-      ferm_sites =
-        Int64.(
-          perm_elem[findall(x -> x in ["C", "Cdag", "Cup", "Cdagup", "Cdn", "Cdagdn"], ops)]
-        )
+      ferm_sites = Int64.(perm_elem[findall(x -> x in ["C", "Cdag", "Cup", "Cdagup", "Cdn", "Cdagdn"], ops)])
       par = 1 - 2 * parity(sortperm(ferm_sites))
 
       C[tuple(perm_elem...)] = par * inner(dag(L), R)

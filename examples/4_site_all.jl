@@ -6,13 +6,12 @@ include("../src/ITensorCorrelators.jl")
 
 function main(N)
   operators = Dict([
-    #("Qubit", ["X","Y","iY","Z","H","√NOT","Phase","π/8","Proj0","Proj1"]), # same as S=1/2
-    #("S=1", ["Sz","Sz2","S+","S-","Sx","Sx2","iSy","Sy","Sy2"]),
-    #("Boson", ["A","Adag","N"]),    # same as qudit
-    #("Fermion", ["N","C","Cdag","F"]),
-    #("Electron", ["Ntot","Nup","Ndn","Cup","Cdn","Cdagup","Cdagdn","Sz","Sx","S+","S-","F","Fup","Fdn","Aup","Adn","Adagup","Adagdn"]),
-    ("Electron", ["Cup", "Cdn", "Cdagup", "Cdagdn"]),
-    #("tJ", ["Ntot","Nup","Ndn","Cup","Cdn","Cdagup","Cdagdn","Sz","Sx","S+","S-","F","Fup","Fdn","Aup","Adn","Adagup","Adagdn"])
+    ("Qubit", ["X","Y","iY","Z","H","√NOT","Phase","π/8","Proj0","Proj1"]), # same as S=1/2
+    ("S=1", ["Sz","Sz2","S+","S-","Sx","Sx2","iSy","Sy","Sy2"]),
+    ("Boson", ["A","Adag","N"]),    # same as qudit
+    ("Fermion", ["N","C","Cdag","F"]),
+    ("Electron", ["Ntot","Nup","Ndn","Cup","Cdn","Cdagup","Cdagdn","Sz","Sx","S+","S-","F","Fup","Fdn"])#,"Aup","Adn","Adagup","Adagdn"]),
+    ("tJ", ["Ntot","Nup","Ndn","Cup","Cdn","Cdagup","Cdagdn","Sz","Sx","S+","S-","F","Fup","Fdn"])#,"Aup","Adn","Adagup","Adagdn"])
   ])
   for type in keys(operators)
     println(type)
