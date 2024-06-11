@@ -19,7 +19,6 @@ function correlator(
     indices[i] = tuple(sortperm([op_site...])...)
   end
 
-
   #C = Dict{Tuple{Vararg{Int64}}, ComplexF64}()
   #for i in 1:length(unique(indices)) #compute correlator separately for every possible order of sites
   i = 1
@@ -30,7 +29,7 @@ function correlator(
 
   op_sites_ord = op_sites
   cor_ops_ord = cor_ops
-  C = correlator_recursive_compact(psi, cor_ops_ord, op_sites_ord; indices=ind_sites,)
+  C = correlator_recursive_compact(psi, cor_ops_ord, op_sites_ord; indices=ind_sites)
   #end 
 
   return C
