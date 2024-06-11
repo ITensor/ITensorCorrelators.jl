@@ -1,8 +1,8 @@
 using ITensors, ITensorMPS
 using IterTools
 using ProgressBars
-using ITensorCorrelators
-#include("../src/ITensorCorrelators.jl")
+#using ITensorCorrelators
+include("../src/ITensorCorrelators.jl")
 
 
 function main(N)
@@ -27,7 +27,7 @@ function main(N)
         for op in ProgressBar(IterTools.product(ops...))
             # check parity of fermionic operators
             ferms = [a in ["C","Cdag","Cup","Cdn","Cdagup","Cdagdn"] ? 1 : 0 for a in op]
-            if sum(ferms) // 2 != 0
+            if sum(ferms) % 2 != 0
                 continue
             else
                 # using correlators
@@ -37,9 +37,12 @@ function main(N)
                     ampo = OpSum()
                     ampo += op[1],idx[1],op[2],idx[2],op[3],idx[3]
                     mpo = MPO(ampo,sites)
+                    # check the correlators are equivalent up to some numerical precision
                     @assert isapprox(inner(psi',mpo,psi),C[idx],rtol=1e-12,atol=1e-12)
                 end
             end
         end
     end
 end
+
+main(4)
