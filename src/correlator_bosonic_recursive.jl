@@ -191,17 +191,11 @@ function add_operator_fermi(
     end
 
     jw_next = jw
+
     for i in 0:repeat
-      if ops[perm_ind[counter + repeat - i]] == "Cdagup" ||
-        ops[perm_ind[counter + repeat - i]] == "Cdag" ||
-        ops[perm_ind[counter + repeat - i]] == "Cup" ||
-        ops[perm_ind[counter + repeat - i]] == "C"
+      if has_fermion_string(ops[perm_ind[counter + repeat - i]], siteinds(psi)[1])
         jw_next = jw_next + 1
         op_psi = apply(op("F", s[op_ind]), op_psi) #track if a fermionic operator was applied
-      elseif ops[perm_ind[counter + repeat - i]] == "Cdagdn" ||
-        ops[perm_ind[counter + repeat - i]] == "Cdn"
-        jw_next = jw_next + 1
-        op_psi = apply(op("F", s[op_ind]), op_psi) #for spin down operator we need a j-w term on-site
       end
     end
 
@@ -214,7 +208,8 @@ function add_operator_fermi(
       perm_elem = element[sortperm(perm_ind)]
 
       # checking for fermion operators and keeping track of anti-commutations
-      ferm_sites = Int64.(perm_elem[findall(x -> x in ["C", "Cdag", "Cup", "Cdagup", "Cdn", "Cdagdn"], ops)])
+      ferm_sites =
+        Int64.(perm_elem[findall(x -> has_fermion_string(x, siteinds(psi)[1]), ops)])
       par = 1 - 2 * parity(sortperm(ferm_sites))
 
       C[tuple(perm_elem...)] = par * inner(dag(L), R)

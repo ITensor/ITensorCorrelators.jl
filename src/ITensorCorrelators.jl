@@ -1,4 +1,4 @@
-#module ITensorCorrelators
+module ITensorCorrelators
 
 using ITensors, ITensorMPS
 
@@ -37,4 +37,4 @@ end
 
 export correlator
 
-#end
+end

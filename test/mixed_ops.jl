@@ -2,14 +2,13 @@
 using ITensors, ITensorMPS
 using Random
 using Test
-#using ITensorCorrelators
-include("../src/ITensorCorrelators.jl")
+using ITensorCorrelators
 
-function main()
+@testset "Mixed A and C operators" begin
   Random.seed!(0)
 
   sites = siteinds("Electron", 4)
-  psi = randomMPS(sites, 3)
+  psi = random_mps(sites)
 
   op = ("Adagdn", "Adagup", "Cup", "Cdn")
 
@@ -28,7 +27,5 @@ function main()
   c = [C[idx] for idx in keys(C)]
   c_mpo = [C2[idx] for idx in keys(C)]
 
-  return isapprox(c,c_mpo,atol=1e-12,rtol=1e-12)
+  @test_broken c ≈ c_mpo atol = 1e-12 rtol = 1e-12
 end
-
-@test_broken main()

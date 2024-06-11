@@ -1,8 +1,7 @@
 using ITensors, ITensorMPS
 using IterTools
 using ProgressBars
-#using ITensorCorrelators
-include("../src/ITensorCorrelators.jl")
+using ITensorCorrelators
 
 function main(N)
   operators = Dict([
@@ -10,21 +9,21 @@ function main(N)
     ("S=1", ["Sz","Sz2","S+","S-","Sx","Sx2","iSy","Sy","Sy2"]),
     ("Boson", ["A","Adag","N"]),    # same as qudit
     ("Fermion", ["N","C","Cdag","F"]),
-    ("Electron", ["Ntot","Nup","Ndn","Cup","Cdn","Cdagup","Cdagdn","Sz","Sx","S+","S-","F","Fup","Fdn"])#,"Aup","Adn","Adagup","Adagdn"]),
+    ("Electron", ["Ntot","Nup","Ndn","Cup","Cdn","Cdagup","Cdagdn","Sz","Sx","S+","S-","F","Fup","Fdn"]),#,"Aup","Adn","Adagup","Adagdn"]),
     ("tJ", ["Ntot","Nup","Ndn","Cup","Cdn","Cdagup","Cdagdn","Sz","Sx","S+","S-","F","Fup","Fdn"])#,"Aup","Adn","Adagup","Adagdn"])
   ])
   for type in keys(operators)
     println(type)
     sites = siteinds(type, N)
-    psi = randomMPS(sites, 20) + im * randomMPS(sites, 20)
+    psi = random_mps(sites, 20) + im * random_mps(sites, 20)
 
     # get all possible sets of indices
     indices = vec([tuple(i, j, k, l) for i in 1:N, j in 1:N, k in 1:N, l in 1:N])
 
     # construct all possible four point correlators
     ops = [operators[type] for i in 1:4]
-    #for op in ProgressBar(IterTools.product(ops...))
-    for op in IterTools.product(ops...)
+    for op in ProgressBar(IterTools.product(ops...))
+    #for op in IterTools.product(ops...)
       # check parity of fermionic operators
 
       ferms = [a in ["C", "Cdag", "Cup", "Cdn", "Cdagup", "Cdagdn"] ? 1 : 0 for a in op]

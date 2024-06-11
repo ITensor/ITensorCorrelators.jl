@@ -26,4 +26,4 @@ c[(2, 3, 4, 5)]
 ```
 This outputs a dictionary mapping the set of sites `i, j, k, l` to the resulting correlator `<Sz_i Sz_j Sz_k Sz_l>`, so in the last line above we are accessing the result for the correlator `<Sz_2 Sz_3 Sz_4 Sz_5>`.
 
-Note that currently, the package does not handle the case of repeated sites properly (i.e. it doesn't handle inputs `(2, 3, 3, 5)` properly). However, it should handle fermionic operators like `Cdag` and `C` properly.
+Note that currently, the package does not handle the case of mixed `A`- and `C`-operators acting on the same sites properly (i.e. it doesn't handle inputs `(2, 3, 3, 5)` properly for `("Adagdn", "Adagup", "Cup", "Cdn")`).

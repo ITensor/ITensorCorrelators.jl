@@ -1,8 +1,7 @@
 using ITensors, ITensorMPS
 using IterTools
 using ProgressBars
-#using ITensorCorrelators
-include("../src/ITensorCorrelators.jl")
+using ITensorCorrelators
 
 
 function main(N)
@@ -11,13 +10,13 @@ function main(N)
         ("S=1", ["Sz","Sz2","S+","S-","Sx","Sx2","iSy","Sy","Sy2"]),
         ("Boson", ["A","Adag","N"]),    # same as qudit
         ("Fermion", ["N","C","Cdag","F"]),
-        ("Electron", ["Ntot","Nup","Ndn","Cup","Cdn","Cdagup","Cdagdn","Sz","Sx","S+","S-","F","Fup","Fdn"])#,"Aup","Adagup","Adn","Adagdn"]),
+        ("Electron", ["Ntot","Nup","Ndn","Cup","Cdn","Cdagup","Cdagdn","Sz","Sx","S+","S-","F","Fup","Fdn"]),#,"Aup","Adagup","Adn","Adagdn"]),
         ("tJ", ["Ntot","Nup","Ndn","Cup","Cdn","Cdagup","Cdagdn","Sz","Sx","S+","S-","F","Fup","Fdn"])#,"Aup","Adagup","Adn","Adagdn"])
         ])
     for type in keys(operators) 
         println(type)
         sites = siteinds(type,N)
-        psi = randomMPS(sites,20) + im*randomMPS(sites,20)
+        psi = random_mps(sites,20) + im*random_mps(sites,20)
         
         # get all possible sets of indices
         indices = vec([tuple(i,j,k) for i=1:N,j=1:N,k=1:N])

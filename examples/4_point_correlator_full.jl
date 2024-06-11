@@ -3,7 +3,7 @@ using ITensorCorrelators
 
 function main(N)
   sites = siteinds("Electron", N)
-  psi = randomMPS(sites, 20) + im * randomMPS(sites, 20)
+  psi = random_mps(sites, 20) + im * random_mps(sites, 20)
 
   # get all possible sets of indices
   indices = vec([tuple(i, j, k, l) for i in 1:N, j in 1:N, k in 1:N, l in 1:N])
