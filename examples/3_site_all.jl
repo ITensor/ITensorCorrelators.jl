@@ -3,7 +3,6 @@ using IterTools
 using ProgressBars
 using ITensorCorrelators
 
-
 function main(N)
     operators = Dict([
         ("Qubit", ["X","Y","iY","Z","H","√NOT","Phase","π/8","Proj0","Proj1"]), # same as S=1/2
@@ -43,5 +42,3 @@ function main(N)
         end
     end
 end
-
-main(4)
