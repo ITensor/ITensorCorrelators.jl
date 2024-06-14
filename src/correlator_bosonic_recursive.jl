@@ -1,4 +1,3 @@
-#using TupleTools: TupleTools
 using Combinatorics
 
 # correlator(("A", "B", "C", "D"), [(1, 2, 3, 4), (1, 2, 4, 5), ...])
