@@ -209,7 +209,7 @@ function add_operator_fermi(
 
       # checking for fermion operators and keeping track of anti-commutations
       ferm_sites =
-        Int64.(perm_elem[findall(x -> has_fermion_string(x, s[op_ind]), ops)])
+        Int.(perm_elem[findall(x -> has_fermion_string(x, s[op_ind]), ops)])
       par = 1 - 2 * parity(sortperm(ferm_sites))
 
       C[tuple(perm_elem...)] = par * inner(dag(L), R)
