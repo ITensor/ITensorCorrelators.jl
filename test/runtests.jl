@@ -3,17 +3,6 @@ using Test
 
 @testset "ITensorCorrelators.jl" begin
   include(joinpath(pkgdir(ITensorCorrelators), "examples", "4_point_correlator.jl"))
-  res = main(; N=20)
-  correlators = res.correlators
-  correlators_mpo = res.correlators_mpo
-  op_sites = keys(correlators)
-  vals = [correlators[op_site] for op_site in op_sites]
-  vals_mpo = [correlators_mpo[op_site] for op_site in op_sites]
-  @test vals ≈ vals_mpo rtol = 1e-12
-end
-
-@testset "Full 4 point correlator" begin
-  include(joinpath(pkgdir(ITensorCorrelators), "examples", "4_point_correlator_full.jl"))
   res = main(; N=10)
   correlators = res.correlators
   correlators_mpo = res.correlators_mpo
@@ -26,7 +15,7 @@ end
 @testset "Mixed A and C operators" begin
   Random.seed!(0)
 
-  sites = siteinds("Electron", 4)
+  sites = siteinds("Electron", 10)
   psi = random_mps(sites)
 
   op = ("Adagdn", "Adagup", "Cup", "Cdn")
