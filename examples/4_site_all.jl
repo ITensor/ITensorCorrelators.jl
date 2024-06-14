@@ -44,5 +44,3 @@ function main(N)
     end
   end
 end
-
-main(4)
