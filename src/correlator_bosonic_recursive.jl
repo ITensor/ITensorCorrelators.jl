@@ -13,7 +13,6 @@ function correlator_recursive_compact(
 
   sites = sort(sites) # Sort the sites along y
   N = length(sites[1])
-  #@assert all(issorted, sites) # Check that each elements of `sites` is sorted
 
   C = Dict{Tuple{Vararg{Int64}},ComplexF64}() #initialize dictionary to store data
   #C = zeros(ComplexF64, length(psi), length(psi), length(psi), length(psi)) #should we output a list or a NxNxNxN matrix?
