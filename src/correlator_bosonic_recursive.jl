@@ -193,7 +193,7 @@ function add_operator_fermi(
     jw_next = jw
 
     for i in 0:repeat
-      if has_fermion_string(ops[perm_ind[counter + repeat - i]], siteinds(psi)[1])
+      if has_fermion_string(ops[perm_ind[counter + repeat - i]], s[op_ind])
         jw_next = jw_next + 1
         op_psi = apply(op("F", s[op_ind]), op_psi) #track if a fermionic operator was applied
       end
@@ -209,7 +209,7 @@ function add_operator_fermi(
 
       # checking for fermion operators and keeping track of anti-commutations
       ferm_sites =
-        Int64.(perm_elem[findall(x -> has_fermion_string(x, siteinds(psi)[1]), ops)])
+        Int64.(perm_elem[findall(x -> has_fermion_string(x, s[op_ind]), ops)])
       par = 1 - 2 * parity(sortperm(ferm_sites))
 
       C[tuple(perm_elem...)] = par * inner(dag(L), R)
