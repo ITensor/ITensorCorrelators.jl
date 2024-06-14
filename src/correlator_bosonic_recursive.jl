@@ -1,5 +1,4 @@
-#using TupleTools: TupleTools
-using Combinatorics
+using Combinatorics: parity
 
 # correlator(("A", "B", "C", "D"), [(1, 2, 3, 4), (1, 2, 4, 5), ...])
 function correlator_recursive_compact(

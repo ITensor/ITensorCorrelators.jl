@@ -1,6 +1,6 @@
 using ITensors, ITensorMPS
-using IterTools
-using ProgressBars
+using IterTools: IterTools
+using ProgressBars: ProgressBar
 using ITensorCorrelators
 
 function main(N)
