@@ -18,9 +18,9 @@ using ITensorCorrelators
   C = correlator(psi, op, inds)
   C2 = Dict{NTuple{4,Int},ComplexF64}()
   for idx in inds
-    ampo = OpSum()
-    ampo += op[1], idx[1], op[2], idx[2], op[3], idx[3], op[4], idx[4]
-    mpo = MPO(ampo, sites)
+    o = OpSum()
+    o += op[1], idx[1], op[2], idx[2], op[3], idx[3], op[4], idx[4]
+    mpo = MPO(o, sites)
     C2[idx] = inner(psi', mpo, psi)
   end
 
