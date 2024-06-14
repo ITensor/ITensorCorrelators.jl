@@ -16,7 +16,7 @@ end
 function main(N)
   sites = siteinds("Electron", N)
   ln = rand(1:50,length(sites)-1)
-  psi = randomMPS(sites, linkinds=ln) + im * randomMPS(sites, linkinds=ln)
+  psi = random_mps(sites, linkinds=ln) + im * random_mps(sites, linkinds=ln)
 
   # get all possible sets of indices
   indices = vec([tuple(i, j, k, l) for i in 1:N, j in 1:N, k in 1:N, l in 1:N])

@@ -32,8 +32,8 @@ function main(N)
                 C = correlator(psi,tuple(op...),indices)
                 # computing old-fashioned way
                 for idx in indices
-                    ampo = OpSum()
-                    ampo += op[1],idx[1],op[2],idx[2],op[3],idx[3]
+                    o = OpSum()
+                    o += op[1],idx[1],op[2],idx[2],op[3],idx[3]
                     mpo = MPO(ampo,sites)
                     # check the correlators are equivalent up to some numerical precision
                     @assert isapprox(inner(psi',mpo,psi),C[idx],rtol=1e-12,atol=1e-12) [op,idx]
