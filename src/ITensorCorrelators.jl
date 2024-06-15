@@ -23,10 +23,6 @@ function correlator(
   #for i in 1:length(unique(indices)) #compute correlator separately for every possible order of sites
   i = 1
   ind_sites = unique(indices)[i]
-  #ind_sites = indices[i]
-  #op_sites_ord = [op_sorted[j] for j in findall(x -> x == ind_sites, indices)]
-  #cor_ops_ord = tuple([cor_ops[j] for j in ind_sites]...)
-
   op_sites_ord = op_sites
   cor_ops_ord = cor_ops
   C = correlator_recursive_compact(psi, cor_ops_ord, op_sites_ord; indices=ind_sites)
