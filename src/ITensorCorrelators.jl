@@ -15,7 +15,6 @@ function correlator(
 
   for (i, op_site) in enumerate(op_sites)
     op_sorted[i] = tuple(sort([op_site...])...)
-    #indices[i] = tuple([findall(x -> x == j, op_site)[1] for j in op_sorted[i]]...) #store the order of the unordered sites strings
     indices[i] = tuple(sortperm([op_site...])...)
   end
 
