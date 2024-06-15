@@ -37,12 +37,7 @@ function main(; N)
 
   ops = ("Cdagup", "Cdagdn", "Cdn", "Cup")
 
-  sites = NTuple{4,Int}[]
-  for a in 1:(N - 3)
-    for b in (a + 2):(N - 1)
-      push!(sites, (a, a + 1, b, b + 1))
-    end
-  end
+  sites = vec([(i, j, k, l) for i in 1:N, j in 1:N, k in 1:N, l in 1:N])
 
   correlators = @time correlator(psi, ops, sites)
   correlators_mpo = @time correlator_mpo(psi, ops, sites)
