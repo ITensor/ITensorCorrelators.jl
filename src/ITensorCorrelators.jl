@@ -26,7 +26,6 @@ function correlator(
   cor_ops_ord = cor_ops
   C = correlator_recursive_compact(psi, cor_ops_ord, op_sites_ord; indices=ind_sites)
   #end 
-
   return C
 end
 
