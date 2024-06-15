@@ -37,7 +37,7 @@ function main(; N)
 
   ops = ("Cdagup", "Cdagdn", "Cdn", "Cup")
 
-  sites = vec([tuple(i, j, k, l) for i in 1:N, j in 1:N, k in 1:N, l in 1:N])
+  sites = vec([(i, j, k, l) for i in 1:N, j in 1:N, k in 1:N, l in 1:N])
 
   correlators = @time correlator(psi, ops, sites)
   correlators_mpo = @time correlator_mpo(psi, ops, sites)
