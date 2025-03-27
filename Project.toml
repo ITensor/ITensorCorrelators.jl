@@ -1,7 +1,7 @@
 name = "ITensorCorrelators"
 uuid = "6b6dea30-58b3-414c-b7c7-5c6ea5923b3e"
 authors = ["Niccolò Baldelli <niccolo.baldelli@icfo.eu>, Matthew Fishman <mfishman@flatironinstitute.org>"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 Combinatorics = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
@@ -12,7 +12,7 @@ TupleTools = "9d95972d-f1c8-5527-a6e0-b4b365fa01f6"
 [compat]
 Combinatorics = "1"
 ITensorMPS = "0.3"
-ITensors = "0.7, 0.8"
+ITensors = "0.7, 0.8, 0.9"
 TupleTools = "1"
 julia = "1.10"
 
